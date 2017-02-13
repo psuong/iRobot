@@ -1,20 +1,32 @@
 import numpy as np
 import cv2
 
-cap = cv2.VideoCapture(0)
 
-while True:
-    # Capture frame-by-frame
-    ret, frame = cap.read()
+class CameraError(Exception):
+    pass
 
-    # Our operations on the frame come here
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    # Display the resulting frame
-    cv2.imshow('frame',gray)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+class Camera(object):
+    def __init__(self, device=0):
+        self.device = device
+        self.camera = cv2.VideoCapture(self.device)
 
-# When everything done, release the capture
-cap.release()
-cv2.destroyAllWindows()
+    def frame(self):
+        status, frame = self.camera.read()
+        if status:
+            return frame
+        else:
+            raise CameraError("Cannot fetch frame")
+
+    def close(self):
+        if self.camera.isOpened():
+            self.camera.release()
+
+    def __del__(self):
+        self.close()
+
+
+if __name__ == '__main__':
+    cam = Camera()
+    cam.frame()
+    cam.close()
