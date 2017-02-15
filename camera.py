@@ -17,7 +17,7 @@ class CameraError(Exception):
     pass
 
 
-class CameraWriterProps(object):
+class CameraWriter(object):
     def __init__(self, output_name=None, fps=20, size=(640, 480)):
         timestamp = datetime.now().strftime('%m-%d-%y_%H-%M-%S')
         self.output_name = output_name or "out_" + timestamp
@@ -34,7 +34,13 @@ class CameraWriterProps(object):
 
     def write(self, frame):
         self.writer.write(frame)
+        self.write_img(frame)
+
         self.frames_recorded += 1
+
+    def write_img(self, frame):
+        timestamp = datetime.now().strftime('%m-%d-%y_%H-%M-%S')
+        cv2.imwrite(IMG_DIR + str(self.writer.frames_recorded) + timestamp + '.jpg', frame)
 
     def close(self):
         self.writer.release()
@@ -44,14 +50,14 @@ class CameraWriterProps(object):
 
 
 class Camera(object):
-    def __init__(self, device=0, write=False, writer=None):
+    def __init__(self, device=0, video=False, image=False, writer=None):
         self.device = device
         self.camera = cv2.VideoCapture(self.device)
         self.write = write
         if self.write:
             self.check_dirs()
 
-            self.writer = writer or CameraWriterProps()
+            self.writer = writer or CameraWriter()
             print(str(self.writer))
 
     def check_dirs(self):
@@ -66,15 +72,11 @@ class Camera(object):
         if status:
             frame = self.preprocess(frame)
             if self.write:
-                self.write_img(frame)
                 self.writer.write(cv2.flip(frame, 0))
             return frame
         else:
             raise CameraError("Cannot fetch frame")
 
-    def write_img(self, frame):
-        timestamp = datetime.now().strftime('%m-%d-%y_%H-%M-%S')
-        cv2.imwrite(IMG_DIR + str(self.writer.frames_recorded) + timestamp + '.jpg', frame)
 
     def preprocess(self, frame):
         return cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
