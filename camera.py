@@ -18,7 +18,7 @@ class CameraError(Exception):
 
 
 class CameraWriter(object):
-    def __init__(self, output_name=None, fps=20, size=(640, 480)):
+    def __init__(self, output_name=None, fps=20, size=(640, 480), write_img=False):
         timestamp = datetime.now().strftime('%m-%d-%y_%H-%M-%S')
         self.output_name = output_name or "out_" + timestamp
         self.output_name = VIDEO_DIR + self.output_name + '.avi'
@@ -30,11 +30,14 @@ class CameraWriter(object):
         codec = cv2.VideoWriter_fourcc(*'DIVX')
         self.writer = cv2.VideoWriter(output_name, codec, fps, size)
 
+        self.write_img = write_img
         self.frames_recorded = 0
 
     def write(self, frame):
         self.writer.write(frame)
-        self.write_img(frame)
+
+        if self.write_img:
+            self.write_img(frame)
 
         self.frames_recorded += 1
 
@@ -53,11 +56,11 @@ class Camera(object):
     def __init__(self, device=0, video=False, image=False, writer=None):
         self.device = device
         self.camera = cv2.VideoCapture(self.device)
-        self.write = write
-        if self.write:
+        self.write = video
+        if self.video:
             self.check_dirs()
 
-            self.writer = writer or CameraWriter()
+            self.writer = writer or CameraWriter(write_img=image)
             print(str(self.writer))
 
     def check_dirs(self):
