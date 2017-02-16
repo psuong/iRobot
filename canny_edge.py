@@ -10,10 +10,17 @@ from matplotlib import pyplot
 class EdgeDetector(object):
     def __init__(self):
         self.__included_extension = [".png", ".jpg", ".jpeg"]
+
     def get_image_files(self, dir: str):
-        image_files = [file for file in os.listdir(dir)
-                       if any(file.endswith(extension) for extension in self.__included_extension)]
+        image_files = []
+        for file in os.listdir(dir):
+            for extension in self.__included_extension:
+                if file.endswith(extension):
+                    image_files.append("{}{}{}".format(dir, os.sep, file))
         return image_files
+
+    def edge_detect_images(self, images: []):
+        pass
 
 if __name__ == "__main__":
     # TODO: Run the function which performs the canny edge detection
