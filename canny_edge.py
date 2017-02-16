@@ -1,11 +1,13 @@
 """
 Reference link: http://docs.opencv.org/trunk/da/d22/tutorial_py_canny.html
+Reference for matplotlib sliders: http://matplotlib.org/api/widgets_api.html
 """
 
 import cv2
 import numpy
 import os
 from matplotlib import pyplot as plt
+# TODO: Import the sliders
 
 class EdgeDetector(object):
     def __init__(self):
@@ -22,6 +24,7 @@ class EdgeDetector(object):
     def edge_detect_images(self, images: []):
         for image in images:
             img = cv2.imread(image, 0);
+            # TODO: Add sliders to manipulate the canny edge detection values
             edges = cv2.Canny(img, 100, 200)
 
             plt.subplot(121), plt.imshow(img, cmap="gray")
