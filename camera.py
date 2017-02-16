@@ -37,13 +37,13 @@ class CameraWriter(object):
         self.writer.write(frame)
 
         if self.write_img:
-            self.write_img(frame)
+            self.__write_img(frame)
 
         self.frames_recorded += 1
 
-    def write_img(self, frame):
+    def __write_img(self, frame):
         timestamp = datetime.now().strftime('%m-%d-%y_%H-%M-%S')
-        cv2.imwrite(IMG_DIR + str(self.writer.frames_recorded) + timestamp + '.jpg', frame)
+        cv2.imwrite(IMG_DIR + timestamp + '.jpg', frame)
 
     def close(self):
         self.writer.release()
@@ -56,7 +56,7 @@ class Camera(object):
     def __init__(self, device=0, video=False, image=False, writer=None):
         self.device = device
         self.camera = cv2.VideoCapture(self.device)
-        self.write = video
+        self.write = video or image
         if self.write:
             self.check_dirs()
 
