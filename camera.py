@@ -57,7 +57,7 @@ class Camera(object):
         self.device = device
         self.camera = cv2.VideoCapture(self.device)
         self.write = video
-        if self.video:
+        if self.write:
             self.check_dirs()
 
             self.writer = writer or CameraWriter(write_img=image)
