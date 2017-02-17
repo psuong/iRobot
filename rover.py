@@ -19,16 +19,23 @@ class Move(object):
     LEFT = b'$8'
     RIGHT = b'$9'
     KEEP_ALIVE = b'$?'
-
+    POWER = b'$!'
 
 class Rover(object):
     def __init__(self, udp_ip=UDP_IP, udp_port=UDP_PORT):
         self.udp_ip = udp_ip
         self.udp_port = udp_port
         self.udp_pair = (self.udp_ip, self.udp_port)
+
+        self.connect_wifi()
+
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     def send(self, message):
+        # Send a Move bytecode
         if not isinstance(message, bytes):
             message = message.encode('utf-8')
         self.sock.sendto(message, self.udp_pair)
+
+    def connect_wifi(self):
+        raise NotImplementedError()
