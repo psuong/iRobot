@@ -1,6 +1,6 @@
 from mraa import Aio
 
-from rover import RoverClient(), Move
+from rover import RoverClient, Move
 
 X_PIN = 0
 Y_PIN = 1
