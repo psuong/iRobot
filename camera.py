@@ -177,7 +177,7 @@ class Camera(object):
 
 
 if __name__ == '__main__':
-    cam = Camera(image=False, video=True)
+    cam = Camera(image=True, video=True)
     for i in range(0, 50):
         print(i)
         cam.frame()
