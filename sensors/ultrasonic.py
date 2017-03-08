@@ -2,14 +2,17 @@
 import mraa
 import time
 
-trig = mraa.Gpio(3)
-echo = mraa.Gpio(4)
 
-trig.dir(mraa.DIR_OUT)
-echo.dir(mraa.DIR_IN)
+def trig_echo(trig_port=3, echo_port=4):
+    trig = mraa.Gpio(trig_port)
+    echo = mraa.Gpio(echo_port)
 
+    trig.dir(mraa.DIR_OUT)
+    echo.dir(mraa.DIR_IN)
 
-def distance(measure='cm'):
+    return trig, echo
+
+def distance(measure='cm', trig=trig, echo=echo):
     trig.write(0)
     time.sleep(0.1)
 
