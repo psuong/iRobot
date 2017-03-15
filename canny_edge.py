@@ -5,7 +5,7 @@ Reference for Hough Transform: http://opencv-python-tutroals.readthedocs.io/en/l
 """
 
 import cv2
-import numpy
+import numpy as np
 import os
 from matplotlib import pyplot as plt
 
@@ -24,26 +24,26 @@ class EdgeDetector(object):
 
     def process_images(self, images: []):
         for image in images:
-            self.edge_detect(image, 100, 200)
+            edged_image = self.edge_detect(image, 100, 200, True)
+            hough_image = self.hough_transform(image, edged_image)
 
-    def edge_detect(self, image: str, threshold1: float, threshold2: float):
+    def edge_detect(self, image: str, threshold1: float, threshold2: float, is_image_shown: bool = False):
         """
-        Performs canny-edge detection on the image.
+        Performs canny-edge detection on the image and returns it
         """
         img = cv2.imread(image, 0)
-        edges = cv2.Canny(img, threshold1, threshold2)
+        edged_image = cv2.Canny(img, threshold1, threshold2)
 
-        print (type(edges))
+        # Should the image be shown?
+        if is_image_shown:
+            plt.subplot(121), plt.imshow(img, cmap="gray")
+            plt.title("Original Image"), plt.xticks([]), plt.yticks([])
+            plt.subplot(122), plt.imshow(edged_image, cmap="gray")
+            plt.title("Edged Image"), plt.xticks([]), plt.yticks([])
+            plt.show()
+        return edged_image
 
-        plt.subplot(121), plt.imshow(img, cmap="gray")
-        plt.title("Original Image"), plt.xticks([]), plt.yticks([])
-        plt.subplot(122), plt.imshow(edges, cmap="gray")
-        plt.title("Edged Image"), plt.xticks([]), plt.yticks([])
-        plt.show()
-
-    def hough_transform(self, raw_image: str, edged_image: str):
-        img = cv2.imread(image)
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    def hough_transform(self, raw_image: str, edged_image: np.ndarray):
         pass
 
 
