@@ -25,7 +25,8 @@ class EdgeDetector(object):
     def process_images(self, images: []):
         for image in images:
             edged_image = self.edge_detect(image, 100, 200, True)
-            hough_image = self.hough_transform(image, edged_image)
+            # hough_image = self.hough_transform(image, edged_image)
+            hough_pimage = self.probabilistic_hough_transform(image)
 
     def edge_detect(self, image: str, threshold1: float, threshold2: float, is_image_shown: bool = False):
         """
@@ -49,6 +50,7 @@ class EdgeDetector(object):
         edges = cv2.Canny(gray, 50, 150, apertureSize=3)
 
         lines = cv2.HoughLines(edges, 1, np.pi / 180, 200)
+        print(lines)
         try:
             for line in lines:
                 rho, theta = line[0]
@@ -69,6 +71,24 @@ class EdgeDetector(object):
             plt.title("Edged Image"), plt.xticks([]), plt.yticks([])
             plt.show()
         except (Exception):
+            pass
+
+    def probabilistic_hough_transform(self, raw_image: str):
+        img = cv2.imread(raw_image)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        edges = cv2.Canny(gray, 50, 150)
+        lines = cv2.HoughLinesP(edges, 1, np.pi/180, 100, minLineLength=1000, maxLineGap=100)
+        try:
+            for line in lines:
+                x1, x2, y1, y2 = line[0]
+                cv2.line(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            plt.subplot(121), plt.imshow(img, cmap="gray")
+            plt.title("Hough P Transform"), plt.xticks([]), plt.yticks([])
+            plt.subplot(122), plt.imshow(edges, color="gray")
+            plt.title("Edged Image"), plt.xticks([]), plt.yticks([])
+            plt.show()
+        except(Exception):
+            print("Passed")
             pass
 
 
