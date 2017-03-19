@@ -49,9 +49,7 @@ class EdgeDetector(object):
         edges = cv2.Canny(gray, 50, 150, apertureSize=3)
 
         lines = cv2.HoughLines(edges, 1, np.pi / 180, 200)
-        print(type(lines))
-        print(lines)
-        if lines != None:
+        try:
             for line in lines:
                 rho, theta = line[0]
                 a = np.cos(theta)
@@ -67,7 +65,11 @@ class EdgeDetector(object):
 
             plt.subplot(121), plt.imshow(img, cmap="gray")
             plt.title("Hough Transform"), plt.xticks([]), plt.yticks([])
+            plt.subplot(122), plt.imshow(edges, cmap="gray")
+            plt.title("Edged Image"), plt.xticks([]), plt.yticks([])
             plt.show()
+        except (Exception):
+            pass
 
 
 if __name__ == "__main__":
