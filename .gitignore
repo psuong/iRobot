@@ -136,3 +136,4 @@ ENV/
 
 # Custom Folders
 archives/
+.vscode/
