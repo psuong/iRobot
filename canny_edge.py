@@ -24,7 +24,7 @@ class EdgeDetector(object):
 
     def process_images(self, images: []):
         for image in images:
-            edged_image = self.edge_detect(image, 100, 200, True)
+            edged_image = self.edge_detect(image, 50, 350, True)
             # hough_image = self.hough_transform(image, edged_image)
             hough_pimage = self.probabilistic_hough_transform(image)
 
@@ -76,7 +76,7 @@ class EdgeDetector(object):
     def probabilistic_hough_transform(self, raw_image: str):
         img = cv2.imread(raw_image)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        edges = cv2.Canny(gray, 50, 150)
+        edges = cv2.Canny(gray, 100, 200, apertureSize=3)
         lines = cv2.HoughLinesP(edges, 1, np.pi/180, 100, minLineLength=1000, maxLineGap=100)
         try:
             for line in lines:
