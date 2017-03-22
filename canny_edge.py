@@ -25,8 +25,6 @@ class EdgeDetector(object):
     def process_images(self, images: []):
         for image in images:
             edged_image = self.edge_detect(image, 50, 350, True)
-            # hough_image = self.hough_transform(image, edged_image)
-            hough_pimage = self.probabilistic_hough_transform(image)
 
     def edge_detect(self, image: str, threshold1: float, threshold2: float, is_image_shown: bool = False):
         """
@@ -37,11 +35,10 @@ class EdgeDetector(object):
 
         # Should the image be shown?
         if is_image_shown:
-            plt.subplot(121), plt.imshow(img, cmap="gray")
-            plt.title("Original Image"), plt.xticks([]), plt.yticks([])
-            plt.subplot(122), plt.imshow(edged_image, cmap="gray")
-            plt.title("Edged Image"), plt.xticks([]), plt.yticks([])
-            plt.show()
+            cv2.namedWindow("Edged Image", cv2.WINDOW_NORMAL)
+            cv2.imshow("Edged Image", edged_image)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
         return edged_image
 
     def hough_transform(self, raw_image: str, edged_image: np.ndarray):
