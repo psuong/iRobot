@@ -7,7 +7,10 @@ Reference for Hough Transform: http://opencv-python-tutroals.readthedocs.io/en/l
 import cv2
 import numpy as np
 import os
-from matplotlib import pyplot as plt
+
+
+def nothing_delegate(value):
+    pass
 
 
 class EdgeDetector(object):
@@ -26,6 +29,9 @@ class EdgeDetector(object):
         for image in images:
             edged_image = self.edge_detect(image, 50, 350, True)
 
+    def nothing(self):
+        pass
+
     def edge_detect(self, image: str, threshold1: float, threshold2: float, is_image_shown: bool = False):
         """
         Performs canny-edge detection on the image and returns it
@@ -35,8 +41,25 @@ class EdgeDetector(object):
 
         # Should the image be shown?
         if is_image_shown:
-            cv2.namedWindow("Edged Image", cv2.WINDOW_NORMAL)
-            cv2.imshow("Edged Image", edged_image)
+            window_name = "Edged Image"
+            cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+            cv2.imshow(window_name, edged_image)
+            cv2.createTrackbar("Threshold 1", window_name, 100, 1000, nothing_delegate)
+            cv2.createTrackbar("Threshold 2", window_name, 200, 1000, nothing_delegate)
+            cv2.createTrackbar("Aperture Size", window_name, 3, 10, nothing_delegate)
+
+            while True:
+                cv2.imshow(window_name, edged_image)
+                k = cv2.waitKey(1) & 0xFF
+                if k == 27:
+                    break
+
+                threshold_1_val = cv2.getTrackbarPos("Threshold 1", window_name)
+                threshold_2_val = cv2.getTrackbarPos("Threshold 2", window_name)
+                aperture_size_val = cv2.getTrackbarPos("Aperture Size", window_name)
+
+                edged_image = cv2.Canny(img, threshold_1_val, threshold_2_val, aperture_size_val)
+
             cv2.waitKey(0)
             cv2.destroyAllWindows()
         return edged_image
@@ -61,12 +84,6 @@ class EdgeDetector(object):
                 y2 = int(y0 - 1000 * -a)
 
                 cv2.line(img, (x1, y2), (x2, y2), (0, 0, 255), 2)
-
-            plt.subplot(121), plt.imshow(img, cmap="gray")
-            plt.title("Hough Transform"), plt.xticks([]), plt.yticks([])
-            plt.subplot(122), plt.imshow(edges, cmap="gray")
-            plt.title("Edged Image"), plt.xticks([]), plt.yticks([])
-            plt.show()
         except (Exception):
             pass
 
@@ -79,13 +96,7 @@ class EdgeDetector(object):
             for line in lines:
                 x1, x2, y1, y2 = line[0]
                 cv2.line(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            plt.subplot(121), plt.imshow(img, cmap="gray")
-            plt.title("Hough P Transform"), plt.xticks([]), plt.yticks([])
-            plt.subplot(122), plt.imshow(edges, color="gray")
-            plt.title("Edged Image"), plt.xticks([]), plt.yticks([])
-            plt.show()
         except(Exception):
-            print("Passed")
             pass
 
 
