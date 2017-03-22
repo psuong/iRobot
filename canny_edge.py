@@ -32,6 +32,9 @@ class EdgeDetector(object):
     def nothing(self):
         pass
 
+    def deploy_canny_edge_gui(self):
+        pass
+
     def edge_detect(self, image: str, threshold1: float, threshold2: float, is_image_shown: bool = False):
         """
         Performs canny-edge detection on the image and returns it
