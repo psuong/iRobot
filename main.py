@@ -8,7 +8,8 @@ def main():
 
     image_files = file_manager.get_image_files(IMG_DIR)
     for image in image_files:
-        image_processor.edge_detect(image, True)
+        edged_image = image_processor.edge_detect(image)
+        image_processor.phough_transform(edged_image)
 
 
 if __name__ == "__main__":
