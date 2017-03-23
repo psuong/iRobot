@@ -11,12 +11,12 @@ class FileManager(object):
     def __init__(self):
         self.__included_extensions = [".png", ".jpg", ".jpeg"]
 
-    def get_image_files(self, dir: str) -> []:
+    def get_image_files(self, directory: str) -> []:
         image_files = []
-        for file in os.listdir(dir):
+        for file in os.listdir(directory):
             for extension in self.__included_extensions:
                 if file.endswith(extension):
-                    image_files.append("{}{}{}".format(dir, os.sep, file))
+                    image_files.append("{}{}{}".format(directory, os.sep, file))
         return image_files
 
 
@@ -25,18 +25,16 @@ class ImageProcessor(object):
         self.threshold_1 = 100
         self.threshold_2 = 200
         self.aperture_size = 3
-        self.gui_object = None
+        self.show_image = True
+        # Image fields
+        self.raw_image = None
+        self.edged_image = None
+        self.hough_transformed_image = None
 
-    def set_threshold_1(self, value: float):
-        self.threshold_1 = value
-
-    def set_threshold_2(self, value: float):
-        self.threshold_2 = value
-
-    def edge_detect(self, image: str, show_image: bool = True):
+    def edge_detect(self, image: str, show_image: bool = True) -> np.ndarray:
         img = cv2.imread(image)
         cv2.threshold(img, 128, 255, cv2.THRESH_BINARY_INV)
-        edged_image = cv2.Canny(img, self.threshold_1, self.threshold_2, apertureSize=self.aperture_size)
+        self.edged_image = cv2.Canny(img, self.threshold_1, self.threshold_2, apertureSize=self.aperture_size)
 
         if show_image:
             window_name = "Edged Image"
@@ -44,7 +42,7 @@ class ImageProcessor(object):
             threshold2_name = "Threshold 2"
             aperture_name = "Aperture Size"
             cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-            cv2.imshow(window_name, edged_image)
+            cv2.imshow(window_name, self.edged_image)
 
             # Create the trackbars
             cv2.createTrackbar(threshold1_name, window_name, 100, 1000, void_delegate)
@@ -52,7 +50,7 @@ class ImageProcessor(object):
             cv2.createTrackbar(aperture_name, window_name, 3, 10, void_delegate)
 
             while 1:
-                cv2.imshow(window_name, edged_image)
+                cv2.imshow(window_name, self.edged_image)
                 k = cv2.waitKey(33) # Press the escape key to exit the application
 
                 if k == 27:
@@ -62,6 +60,20 @@ class ImageProcessor(object):
                 self.threshold_2 = cv2.getTrackbarPos(threshold2_name, window_name)
                 self.aperture_size = cv2.getTrackbarPos(aperture_name, window_name)
 
-                edged_image = cv2.Canny(img, self.threshold_1, self.threshold_2, apertureSize=3)
+                self.edged_image = cv2.Canny(img, self.threshold_1, self.threshold_2, apertureSize=3)
 
-        return edged_image
+        return self.edged_image
+
+    def phough_transform(self, edged_image: np.ndarray, orig_image: np.ndarray, show_image: bool=True) -> np.ndarray:
+        lines = cv2.HoughLinesP(edged_image, 1, np.pi/180, 100, minLineLength=1000, maxLineGap=100)
+        try:
+            for line in lines:
+                x1, x2, y1, y2 = lines[0]
+                cv2.line(orig_image, (x1, y1), (x2, y2), (0, 255, 0), 2)
+        except(Exception):
+            pass
+
+        if show_image:
+            pass
+
+        pass
