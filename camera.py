@@ -193,7 +193,8 @@ class VideoReader(object):
         while self.video.isOpened():
             ret, frame = self.video.read()
 
-            # TODO:
+            # TODO: Fix the original image being set
+            # Currently, the gray scaled image sets it
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # Get a gray scaled image
             edged_image = self.__image_processor__.edge_detect(gray)
             hough_transformed_image = self.__image_processor__.phough_transform(edged_image)
