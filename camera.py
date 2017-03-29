@@ -16,6 +16,7 @@ cam.close()  # properly close the camera
 from datetime import datetime
 import os
 from abc import ABCMeta, abstractmethod, abstractproperty
+from image_processor import ImageProcessor, ESC_KEY
 
 import numpy as np
 import cv2
@@ -174,6 +175,31 @@ class Camera(object):
     def __del__(self):
         self.close()
 
+
+class VideoReader(object):
+    def __init__(self, video_path):
+        self.video_path = video_path
+        self.video = None
+        self.__image_processor__ = None
+
+    def open_video(self):
+        self.video = cv2.VideoCapture(self.video_path)
+        return self.video
+
+    def read_video(self):
+        while self.video.isOpened():
+            ret, frame = self.video.read()
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+            cv2.imshow("frame", gray)
+
+            key = cv2.waitKey(ESC_KEY)
+
+            if key == 27:
+                break
+
+        self.video.release()
+        cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
