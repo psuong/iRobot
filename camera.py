@@ -177,10 +177,15 @@ class Camera(object):
 
 
 class VideoReader(object):
-    def __init__(self, video_path):
+    """
+    Reads a video frame by frame and processes each frame
+    """
+    def __init__(self, video_path, image_processor):
         self.video_path = video_path
         self.video = None
-        self.__image_processor__ = None
+        self.__image_processor__ = image_processor
+
+        self.__image_processor__.show_image = False
 
     def open_video(self):
         self.video = cv2.VideoCapture(self.video_path)
@@ -189,7 +194,7 @@ class VideoReader(object):
     def read_video(self):
         while self.video.isOpened():
             ret, frame = self.video.read()
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)# Get a gray scaled image
 
             cv2.imshow("frame", gray)
 

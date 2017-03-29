@@ -37,11 +37,11 @@ class ImageProcessor(object):
     def set_raw_image(self, raw_image: np.ndarray):
         self.raw_image = raw_image
 
-    def edge_detect(self, image: str) -> np.ndarray:
-        img = cv2.imread(image)
-        self.set_raw_image(img)
-        cv2.threshold(img, 128, 255, cv2.THRESH_BINARY_INV)
-        self.edged_image = cv2.Canny(img, self.threshold_1, self.threshold_2, apertureSize=self.aperture_size)
+    def edge_detect(self, image: np.ndarray) -> np.ndarray:
+        # img = cv2.imread(image)
+        self.set_raw_image(image)
+        cv2.threshold(image, 128, 255, cv2.THRESH_BINARY_INV)
+        self.edged_image = cv2.Canny(image, self.threshold_1, self.threshold_2, apertureSize=self.aperture_size)
 
         if self.show_image:
             window_name = "Edged Image"
