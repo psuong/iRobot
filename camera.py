@@ -183,9 +183,7 @@ class VideoReader(object):
     def __init__(self, video_path, image_processor):
         self.video_path = video_path
         self.video = None
-        self.__image_processor__ = image_processor
-
-        self.__image_processor__.show_image = False
+        self.__image_processor__ = ImageProcessor()
 
     def open_video(self):
         self.video = cv2.VideoCapture(self.video_path)
@@ -194,15 +192,18 @@ class VideoReader(object):
     def read_video(self):
         while self.video.isOpened():
             ret, frame = self.video.read()
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)# Get a gray scaled image
 
-            cv2.imshow("frame", gray)
+            # TODO:
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # Get a gray scaled image
+            edged_image = self.__image_processor__.edge_detect(gray)
+            hough_transformed_image = self.__image_processor__.phough_transform(edged_image)
+
+            cv2.imshow("Window", hough_transformed_image)
 
             key = cv2.waitKey(ESC_KEY)
 
             if key == 27:
                 break
-
         self.video.release()
         cv2.destroyAllWindows()
 

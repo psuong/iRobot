@@ -24,11 +24,11 @@ class FileManager(object):
 
 
 class ImageProcessor(object):
-    def __init__(self, gui=None):
+    def __init__(self, show_image=False):
         self.threshold_1 = 100
         self.threshold_2 = 200
         self.aperture_size = 3
-        self.show_image = True
+        self.show_image = show_image
         # Image fields
         self.raw_image = None
         self.edged_image = None
@@ -68,9 +68,10 @@ class ImageProcessor(object):
                 self.aperture_size = cv2.getTrackbarPos(aperture_name, window_name)
 
                 self.edged_image = cv2.Canny(img, self.threshold_1, self.threshold_2, apertureSize=3)
-        cv2.destroyAllWindows()
+            cv2.destroyAllWindows()
         return self.edged_image
 
+    # TODO: Fix the raw_image setting when performing a hough_transform
     def phough_transform(self, edged_image: np.ndarray) -> np.ndarray:
         gray_scaled_image = cv2.cvtColor(self.raw_image, cv2.COLOR_BGR2GRAY)
         lines = cv2.HoughLinesP(edged_image, 1, np.pi/180, 100, minLineLength=100, maxLineGap=10)
