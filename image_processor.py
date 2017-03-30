@@ -24,9 +24,9 @@ class FileManager(object):
 
 
 class ImageProcessor(object):
-    def __init__(self, show_image=False):
-        self.threshold_1 = 100
-        self.threshold_2 = 200
+    def __init__(self, show_image=False, threshold_1=None, threshold_2=None):
+        self.threshold_1 = threshold_1 or 100
+        self.threshold_2 = threshold_2 or 200
         self.aperture_size = 3
         self.show_image = show_image
         # Image fields
@@ -52,8 +52,8 @@ class ImageProcessor(object):
             cv2.imshow(window_name, self.edged_image)
 
             # Create the trackbars
-            cv2.createTrackbar(threshold1_name, window_name, 100, 1000, void_delegate)
-            cv2.createTrackbar(threshold2_name, window_name, 200, 2000, void_delegate)
+            cv2.createTrackbar(threshold1_name, window_name, self.threshold_1, 1000, void_delegate)
+            cv2.createTrackbar(threshold2_name, window_name, self.threshold_2, 2000, void_delegate)
             cv2.createTrackbar(aperture_name, window_name, 3, 10, void_delegate)
 
             while 1:
@@ -67,7 +67,7 @@ class ImageProcessor(object):
                 self.threshold_2 = cv2.getTrackbarPos(threshold2_name, window_name)
                 self.aperture_size = cv2.getTrackbarPos(aperture_name, window_name)
 
-                self.edged_image = cv2.Canny(img, self.threshold_1, self.threshold_2, apertureSize=3)
+                self.edged_image = cv2.Canny(image, self.threshold_1, self.threshold_2, apertureSize=3)
             cv2.destroyAllWindows()
         return self.edged_image
 

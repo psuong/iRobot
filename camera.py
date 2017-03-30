@@ -94,9 +94,9 @@ class ImageWriter(Writer):
     """
     Writing image is simpler than videos. All you need is a frame and imwrite.
     """
-    def write(self, frame):
+    def write(self, frame, path=None):
         timestamp = datetime.now().strftime('%m-%d-%y_%H-%M-%S')
-        cv2.imwrite(IMG_DIR + str(self.frames_recorded) + '_' + timestamp + '.jpg', frame)
+        cv2.imwrite((path or IMG_DIR) + str(self.frames_recorded) + '_' + timestamp + '.jpg', frame)
         # Make sure to increment frames_recorded
         self.frames_recorded += 1
 
@@ -180,10 +180,9 @@ class VideoReader(object):
     """
     Reads a video frame by frame and processes each frame
     """
-    def __init__(self, video_path, image_processor):
+    def __init__(self, video_path):
         self.video_path = video_path
         self.video = None
-        self.__image_processor__ = ImageProcessor()
 
     def open_video(self):
         self.video = cv2.VideoCapture(self.video_path)
@@ -196,17 +195,8 @@ class VideoReader(object):
             # TODO: Fix the original image being set
             # Currently, the gray scaled image sets it
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # Get a gray scaled image
-            edged_image = self.__image_processor__.edge_detect(gray)
-            hough_transformed_image = self.__image_processor__.phough_transform(edged_image)
 
-            cv2.imshow("Window", hough_transformed_image)
-
-            key = cv2.waitKey(ESC_KEY)
-
-            if key == 27:
-                break
-        self.video.release()
-        cv2.destroyAllWindows()
+            yield gray, self.video.isOpened()
 
 
 if __name__ == '__main__':
