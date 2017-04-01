@@ -198,14 +198,7 @@ class VideoReader(object):
     def read_video(self):
         while self.video.isOpened():
             ret, frame = self.video.read()
-            frame = cv2.resize(frame, FRAME_SIZE)
-
-            # TODO: Fix the original image being set
-            # Currently, the gray scaled image sets it
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # Get a gray scaled image
-
-            yield gray, self.video.isOpened()
-
+            yield frame, self.video.isOpened()
 
 if __name__ == '__main__':
     cam = Camera(image=True, video=True)
