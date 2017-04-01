@@ -1,5 +1,5 @@
 from image_processor import FileManager, ImageProcessor, ESC_KEY
-from camera import IMG_DIR, VIDEO_DIR, VideoReader
+from camera import IMG_DIR, VIDEO_DIR, VideoReader, DEF_RESOLUTION
 from calibration import calibrate_canny
 import cv2
 
@@ -18,8 +18,9 @@ def image_process():
 
 
 def video_process():
-    image_processor = ImageProcessor()
-    video = VideoReader("{}{}".format(VIDEO_DIR, "home_grown.webm"))
+    image_processor = ImageProcessor(threshold_1=1000, threshold_2=2000)
+    image_processor.aperture_size = 5
+    video = VideoReader("{}{}".format(VIDEO_DIR, "curved_roads.mp4"))
 
     capture = video.open_video()
 
@@ -30,23 +31,13 @@ def video_process():
         edged_image = image_processor.edge_detect(gray)
         hough_transformed_image = image_processor.phough_transform(edged_image, frame)
 
-        cv2.imshow("Window", hough_transformed_image)
         cv2.imshow("Edged", edged_image)
+        cv2.imshow("Hough Transform", hough_transformed_image)
 
         key = cv2.waitKey(ESC_KEY)
 
         if ESC_KEY == 27:
             break
-
-    video_generator = video.read_video()
-
-    for image, status in video_generator:
-        if status:
-            ret, frame = video.video.read()
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            edged_image = image_processor.edge_detect(gray)
-            hough_transformed_image = image_processor.phough_transform(edged_image, frame)
-            cv2.imshow("Window", hough_transformed_image)
 
 
 if __name__ == "__main__":

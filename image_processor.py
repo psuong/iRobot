@@ -39,10 +39,11 @@ class ImageProcessor(object):
         return self.edged_image
 
     def phough_transform(self, edged_image: np.ndarray, image: np.ndarray) -> np.ndarray:
-        lines = cv2.HoughLinesP(edged_image, 1, np.pi/180, 100, minLineLength=10, maxLineGap=10)
+        lines = cv2.HoughLinesP(edged_image, 1, np.pi/180, 100, minLineLength=100, maxLineGap=10)
         if lines is None:
             return None
-        for x1, y1, x2, y2 in lines[0]:
+        for line in lines:
+            x1, y1, x2, y2 = line[0][0], line[0][1], line[0][2], line[0][3]
             cv2.line(image, (x1, y1), (x2, y2), color=(66, 244, 69), thickness=6)
         return image
 
