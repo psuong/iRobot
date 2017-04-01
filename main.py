@@ -5,7 +5,13 @@ from camera import IMG_DIR, VIDEO_DIR, VideoReader
 def main():
     file_manager = FileManager()
     image_processor = ImageProcessor()
-    pass
+
+
+def image_process():
+    file_manager = FileManager()
+    image_processor = ImageProcessor()
+
+    file_manager.get_image_files(IMG_DIR)
 
 
 def video_process():

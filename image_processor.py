@@ -72,32 +72,31 @@ class ImageProcessor(object):
         return self.edged_image
 
     # TODO: Fix the raw_image setting when performing a hough_transform
-    def phough_transform(self, edged_image: np.ndarray) -> np.ndarray:
-        gray_scaled_image = cv2.cvtColor(self.raw_image, cv2.COLOR_BGR2GRAY)
+    def phough_transform(self, edged_image: np.ndarray, gray_scaled_image) -> np.ndarray:
+        # gray_scaled_image = cv2.imread(self.raw_image, 0)
         lines = cv2.HoughLinesP(edged_image, 1, np.pi/180, 100, minLineLength=100, maxLineGap=10)
-        try:
-            for x1, y1, x2, y2 in lines[0]:
-                cv2.line(gray_scaled_image, (x1, y1), (x2, y2), (0, 255, 0), 2)
+        for x1, y1, x2, y2 in lines[0]:
+            cv2.line(gray_scaled_image, (x1, y1), (x2, y2), color=(66, 244, 69), thickness=6)
 
-            print("Writing an image")
-            cv2.imwrite("hough_transformed_image.jpeg", gray_scaled_image)
-        except(Exception):
-            pass
+        # print("Writing an image")
+        # cv2.imwrite("hough_transformed_image.jpeg", gray_scaled_image)
+        return gray_scaled_image
+"""
+    if self.show_image:
+        window_name = "Hough Transform"
+        min_line_name = "Min Line Length"
+        max_line_name = "Max Line Gap"
+        cv2.namedWindow(window_name)
+        cv2.imshow(window_name, gray_scaled_image)
 
-        if self.show_image:
-            window_name = "Hough Transform"
-            min_line_name = "Min Line Length"
-            max_line_name = "Max Line Gap"
-            cv2.namedWindow(window_name)
+        # Create the trackbars
+        # cv2.createTrackbar(min_line_name, window_name, 100, 1000, void_delegate)
+        # cv2.createTrackbar(max_line_name, window_name, 200, 2000, void_delegate)
+
+        while 1:
             cv2.imshow(window_name, gray_scaled_image)
+            k = cv2.waitKey(ESC_KEY)
 
-            # Create the trackbars
-            # cv2.createTrackbar(min_line_name, window_name, 100, 1000, void_delegate)
-            # cv2.createTrackbar(max_line_name, window_name, 200, 2000, void_delegate)
-
-            while 1:
-                cv2.imshow(window_name, gray_scaled_image)
-                k = cv2.waitKey(ESC_KEY)
-
-                if k == 27:
-                    break
+            if k == 27:
+                break
+                """
