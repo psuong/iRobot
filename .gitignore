@@ -5,6 +5,7 @@
 ### Custom ####
 img/
 vid/
+research/
 .vagrant/
 
 ### C++ ###
@@ -134,3 +135,8 @@ ENV/
 .ropeproject
 
 # End of https://www.gitignore.io/api/python,c++
+
+# Custom Folders
+archives/
+.vscode/
+.idea/

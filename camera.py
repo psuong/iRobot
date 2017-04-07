@@ -16,6 +16,7 @@ cam.close()  # properly close the camera
 from datetime import datetime
 import os
 from abc import ABCMeta, abstractmethod, abstractproperty
+from image_processor import ImageProcessor, ESC_KEY
 
 import numpy as np
 import cv2
@@ -23,6 +24,8 @@ import cv2
 
 IMG_DIR = 'img/'
 VIDEO_DIR = 'vid/'
+
+FRAME_SIZE = (640, 480)
 
 
 class CameraError(Exception):
@@ -38,7 +41,7 @@ class Writer(object):
     """
     __metaclass__ = ABCMeta
 
-    def __init__(self, fps=20, size=(640, 480)):
+    def __init__(self, fps=20, size=FRAME_SIZE):
         if not isinstance(size, tuple):
             raise CameraError("Frame size parameter must be a tuple")
 
@@ -93,9 +96,9 @@ class ImageWriter(Writer):
     """
     Writing image is simpler than videos. All you need is a frame and imwrite.
     """
-    def write(self, frame):
+    def write(self, frame, path=None):
         timestamp = datetime.now().strftime('%m-%d-%y_%H-%M-%S')
-        cv2.imwrite(IMG_DIR + str(self.frames_recorded) + '_' + timestamp + '.jpg', frame)
+        cv2.imwrite((path or IMG_DIR) + str(self.frames_recorded) + '_' + timestamp + '.jpg', frame)
         # Make sure to increment frames_recorded
         self.frames_recorded += 1
 
@@ -121,6 +124,9 @@ class Camera(object):
         """
         self.device = device
         self.camera = cv2.VideoCapture(self.device)
+
+        self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_SIZE[0])
+        self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_SIZE[1])
 
         if not self.camera.isOpened():
             raise CameraError('Failed to open camera!')
@@ -175,9 +181,34 @@ class Camera(object):
         self.close()
 
 
+class VideoReader(object):
+    """
+    Reads a video frame by frame and processes each frame
+    """
+    def __init__(self, video_path):
+        self.video_path = video_path
+        self.video = None
+
+    def open_video(self):
+        self.video = cv2.VideoCapture(self.video_path)
+        self.video.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_SIZE[0])
+        self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_SIZE[1])
+        return self.video
+
+    def read_video(self):
+        while self.video.isOpened():
+            ret, frame = self.video.read()
+            frame = cv2.resize(frame, FRAME_SIZE)
+
+            # TODO: Fix the original image being set
+            # Currently, the gray scaled image sets it
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # Get a gray scaled image
+
+            yield gray, self.video.isOpened()
+
 
 if __name__ == '__main__':
-    cam = Camera(image=False, video=True)
+    cam = Camera(image=True, video=True)
     for i in range(0, 50):
         print(i)
         cam.frame()
