@@ -6,6 +6,7 @@
 img/
 vid/
 research/
+.vagrant/
 
 ### C++ ###
 # Prerequisites
