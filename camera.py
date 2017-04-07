@@ -25,6 +25,8 @@ import cv2
 IMG_DIR = 'img/'
 VIDEO_DIR = 'vid/'
 
+FRAME_SIZE = (640, 480)
+
 
 class CameraError(Exception):
     pass
@@ -39,7 +41,7 @@ class Writer(object):
     """
     __metaclass__ = ABCMeta
 
-    def __init__(self, fps=20, size=(640, 480)):
+    def __init__(self, fps=20, size=FRAME_SIZE):
         if not isinstance(size, tuple):
             raise CameraError("Frame size parameter must be a tuple")
 
@@ -123,6 +125,9 @@ class Camera(object):
         self.device = device
         self.camera = cv2.VideoCapture(self.device)
 
+        self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_SIZE[0])
+        self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_SIZE[1])
+
         if not self.camera.isOpened():
             raise CameraError('Failed to open camera!')
 
@@ -186,11 +191,14 @@ class VideoReader(object):
 
     def open_video(self):
         self.video = cv2.VideoCapture(self.video_path)
+        self.video.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_SIZE[0])
+        self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_SIZE[1])
         return self.video
 
     def read_video(self):
         while self.video.isOpened():
             ret, frame = self.video.read()
+            frame = cv2.resize(frame, FRAME_SIZE)
 
             # TODO: Fix the original image being set
             # Currently, the gray scaled image sets it
