@@ -36,7 +36,7 @@ class RoverClient(object):
 
     def off(self, *args):
         for arg in args:
-            arg.write(1)
+            arg.write(0)
 
     def nap(self, seconds=DEFAULT_RUN_LENGTH):
         time.sleep(seconds)
