@@ -8,14 +8,14 @@ import time
 DEFAULT_RUN_LENGTH = 0.3
 
 
-class Rover(object):
+class RoverClient(object):
     def __init__(self, left=(0, 1), right=(3, 4)):
         # GPIO pin setup
         self.left_backward = mraa.Gpio(left[0])
         self.left_forward = mraa.Gpio(left[1])
 
-        self.right_forward = mraa.Gpio(right[2])
-        self.right_backward = mraa.Gpio(right[4])
+        self.right_forward = mraa.Gpio(right[0])
+        self.right_backward = mraa.Gpio(right[1])
 
         self.left_forward.dir(mraa.DIR_OUT)
         self.left_backward.dir(mraa.DIR_OUT)
