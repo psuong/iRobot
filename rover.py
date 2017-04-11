@@ -52,11 +52,11 @@ class Rover(object):
         self.off(self.right_backward, self.left_backward)
 
     def forward_right(self, seconds=DEFAULT_RUN_LENGTH):
-        self.on(self.left_forward)
+        self.on(self.left_forward, self.right_backward)
         self.nap(seconds)
-        self.off(self.left_forward)
+        self.off(self.left_forward, self.right_backward)
 
     def forward_left(self, seconds=DEFAULT_RUN_LENGTH):
-        self.on(self.right_forward)
+        self.on(self.right_forward, self.left_backward)
         self.nap(seconds)
-        self.off(self.right_forward)
+        self.off(self.right_forward, self.left_backward)
