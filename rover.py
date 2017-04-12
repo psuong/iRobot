@@ -14,8 +14,8 @@ class RoverClient(object):
         self.left_backward = mraa.Gpio(left[0])
         self.left_forward = mraa.Gpio(left[1])
 
-        self.right_forward = mraa.Gpio(right[1])
-        self.right_backward = mraa.Gpio(right[0])
+        self.right_forward = mraa.Gpio(right[0])
+        self.right_backward = mraa.Gpio(right[1])
 
         self.left_forward.dir(mraa.DIR_OUT)
         self.left_backward.dir(mraa.DIR_OUT)
