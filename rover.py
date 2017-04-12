@@ -9,7 +9,7 @@ DEFAULT_RUN_LENGTH = 0.3
 
 
 class RoverClient(object):
-    def __init__(self, left=(0, 1), right=(3, 4)):
+    def __init__(self, left=(2, 3), right=(4, 5)):
         # GPIO pin setup
         self.left_backward = mraa.Gpio(left[0])
         self.left_forward = mraa.Gpio(left[1])
