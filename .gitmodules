@@ -1,0 +1,3 @@
+[submodule "edi-cam"]
+	path = edi-cam
+	url = git@github.com:exp0nge/edi-cam.git
