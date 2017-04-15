@@ -1,5 +1,5 @@
 from image_processor import FileManager, ImageProcessor, ESC_KEY
-from camera import IMG_DIR, VIDEO_DIR, VideoReader, DEF_RESOLUTION
+from camera import IMG_DIR, VIDEO_DIR, VideoReader, FRAME_SIZE
 from calibration import calibrate_canny
 import cv2
 
