@@ -5,11 +5,12 @@ Execute in Intel Edison
 import mraa
 import time
 
-DEFAULT_RUN_LENGTH = 0.3
+DEFAULT_RUN_LENGTH = 0.5
+DEFAULT_TURN_SLEEP = 0.3
 
 
 class RoverClient(object):
-    def __init__(self, left=(2, 3), right=(4, 5)):
+    def __init__(self, left=(2, 3), right=(4, 5), pwm=(6, 9)):
         # GPIO pin setup
         self.left_backward = mraa.Gpio(left[0])
         self.left_forward = mraa.Gpio(left[1])
@@ -22,7 +23,12 @@ class RoverClient(object):
         self.right_backward.dir(mraa.DIR_OUT)
         self.right_forward.dir(mraa.DIR_OUT)
 
+        self.en_A = mraa.Pwm(pwm[1])
+        self.en_B = mraa.Pwm(pwm[0])
+
         self.halt()
+        self.en_A.write(.5)
+        self.en_B.write(.5)
 
     def halt(self):
         self.left_forward.write(0)
@@ -51,12 +57,12 @@ class RoverClient(object):
         self.nap(seconds)
         self.off(self.right_backward, self.left_backward)
 
-    def forward_right(self, seconds=DEFAULT_RUN_LENGTH):
+    def forward_right(self, seconds=DEFAULT_TURN_SLEEP):
         self.on(self.left_forward, self.right_backward)
         self.nap(seconds)
         self.off(self.left_forward, self.right_backward)
 
-    def forward_left(self, seconds=DEFAULT_RUN_LENGTH):
+    def forward_left(self, seconds=DEFAULT_TURN_SLEEP):
         self.on(self.right_forward, self.left_backward)
         self.nap(seconds)
         self.off(self.right_forward, self.left_backward)
