@@ -140,3 +140,6 @@ ENV/
 archives/
 .vscode/
 .idea/
+
+# Lane tracking repo
+*LaneTracking/*
