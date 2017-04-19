@@ -6,6 +6,9 @@ import track
 import detect
 from ransac_vanishing_point import ransac_vanishing_point_detection
 
+from rover import RoverClient
+from camera import VideoWriter
+
 
 def line_intersection(line1, line2):
     xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
@@ -25,6 +28,8 @@ def line_intersection(line1, line2):
 
 
 def main(video_path):
+    rover = RoverClient()
+    video_writer = VideoWriter()
     cap = cv2.VideoCapture(video_path)
     cap.set(cv2.CAP_PROP_FPS, 20)
     ticks = 0
@@ -103,6 +108,8 @@ def main(video_path):
                     cv2.putText(frame, "Straight", (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, 255)
                     print("Straight")
                     rover.forward()
+
+                video_writer.write(frame)
 
                 warning_y = (best_fit[0] + int(width / 4), best_fit[1] + int(height / 2))
                 # danger box
