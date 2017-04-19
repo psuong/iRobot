@@ -74,6 +74,7 @@ class VideoWriter(Writer):
         timestamp = datetime.now().strftime('%m-%d-%y_%H-%M-%S')
         self.output_name = output_name or 'out_' + timestamp
         self.output_name = VIDEO_DIR + self.output_name + '.avi'
+        print("out: " + self.output_name)
         codec = cv2.VideoWriter_fourcc(*'DIVX')
         self.writer = cv2.VideoWriter(self.output_name,
                                       codec,
@@ -149,19 +150,20 @@ class Camera(object):
         if not os.path.exists(IMG_DIR):
             os.makedirs(IMG_DIR)
 
-    def frame(self):
+    def frame(self, delay_write=False):
         status, frame = self.camera.read()
         if status:
-            if self.write:
+            if self.write and not delay_write:
                 if self.write_video:
-                    self.video_writer.write(frame)
+                    self._write_video_frame(frame)
                 if self.write_image:
                     self.image_writer.write(frame)
-
             return frame
         else:
             raise CameraError("Cannot fetch frame")
 
+    def _write_video_frame(self, frame):
+        self.video_writer.write(frame)
 
     def preprocess(self, frame):
         return cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)

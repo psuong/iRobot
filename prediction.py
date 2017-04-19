@@ -5,7 +5,7 @@ import cv2
 from lane_tracking import track, detect, ransac_vanishing_point
 from time import  sleep
 from rover import RoverClient
-from camera import VideoWriter
+from camera import Camera
 
 
 def line_intersection(line1, line2):
@@ -25,10 +25,9 @@ def line_intersection(line1, line2):
     return [x, y]
 
 
-def main(video_path):
+def main(video_path, show_window=True):
     rover = RoverClient()
-    video_writer = VideoWriter()
-    cap = cv2.VideoCapture(video_path)
+    cap = Camera(device=video_path, video=True)
     rover.forward()
     # Wait and sleep
     sleep(1)
@@ -36,12 +35,12 @@ def main(video_path):
 
     lt = track.LaneTracker(2, 0.1, 500)
     ld = detect.LaneDetector(80)
-    while cap.isOpened():
+    while True:
         precTick = ticks
         ticks = cv2.getTickCount()
         dt = (ticks - precTick) / cv2.getTickFrequency()
 
-        ret, frame = cap.read()
+        frame = cap.frame(delay_write=True)
 
         predicted = lt.predict(dt)
 
@@ -117,13 +116,14 @@ def main(video_path):
                 cv2.rectangle(frame, (best_fit[0] - int(width / 4), best_fit[1]),
                               warning_y, (244, 65, 130),
                               thickness=2)
-
-                video_writer.write(frame)
+                cap._write_video_frame(frame)
                 sleep(1)
         lt.update(lanes)
-
-        # cv2.imshow('', frame)
+        
+        if show_window:
+            cv2.imshow('', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
+            cap.close()
             break
 
 
@@ -133,4 +133,4 @@ if __name__ == '__main__':
     # main("vids/straight-2.mp4")
     # main("vids/hough_transform_sample.mp4")
     # main("vids/curved_roads.mp4")
-    main(0)
+    main(0, show_window=False)
