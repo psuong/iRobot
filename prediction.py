@@ -3,7 +3,7 @@ from __future__ import division
 import cv2
 
 from lane_tracking import track, detect, ransac_vanishing_point
-
+from time import  sleep
 from rover import RoverClient
 from camera import VideoWriter
 
@@ -29,7 +29,9 @@ def main(video_path):
     rover = RoverClient()
     video_writer = VideoWriter()
     cap = cv2.VideoCapture(video_path)
-    cap.set(cv2.CAP_PROP_FPS, 20)
+    rover.forward()
+    # Wait and sleep
+    sleep(1)
     ticks = 0
 
     lt = track.LaneTracker(2, 0.1, 500)
@@ -48,7 +50,8 @@ def main(video_path):
         if predicted is not None:
             cv2.line(frame, (predicted[0][0], predicted[0][1]), (predicted[0][2], predicted[0][3]), (255, 0, 255), 2)
             cv2.line(frame, (predicted[1][0], predicted[1][1]), (predicted[1][2], predicted[1][3]), (255, 0, 255), 2)
-            best_fit = ransac_vanishing_point_detection(
+
+            best_fit = ransac_vanishing_point.ransac_vanishing_point_detection(
                 [[predicted[0][0], predicted[0][1], predicted[0][2], predicted[0][3]],
                  [predicted[1][0], predicted[1][1], predicted[1][2], predicted[1][3]]])
             if best_fit:
@@ -107,8 +110,6 @@ def main(video_path):
                     print("Straight")
                     rover.forward()
 
-                video_writer.write(frame)
-
                 warning_y = (best_fit[0] + int(width / 4), best_fit[1] + int(height / 2))
                 # danger box
                 # offset = int(frame.shape[0] / 2 / 2)
@@ -117,10 +118,12 @@ def main(video_path):
                               warning_y, (244, 65, 130),
                               thickness=2)
 
+                video_writer.write(frame)
+                sleep(1)
         lt.update(lanes)
 
-        cv2.imshow('', frame)
-        if cv2.waitKey(50) & 0xFF == ord('q'):
+        # cv2.imshow('', frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
 
@@ -128,5 +131,6 @@ if __name__ == '__main__':
     # main('E:/Users/exp0nge/projects/iRobot/vid/straight.webm')
     # main('E:/Users/exp0nge/projects/iRobot/vid/curved.mp4')
     # main("vids/straight-2.mp4")
-    main("vids/hough_transform_sample.mp4")
+    # main("vids/hough_transform_sample.mp4")
     # main("vids/curved_roads.mp4")
+    main(0)
