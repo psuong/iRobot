@@ -2,9 +2,7 @@ from __future__ import division
 
 import cv2
 
-import track
-import detect
-from ransac_vanishing_point import ransac_vanishing_point_detection
+from lane_tracking import track, detect, ransac_vanishing_point
 
 from rover import RoverClient
 from camera import VideoWriter
