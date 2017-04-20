@@ -127,8 +127,8 @@ class Camera(object):
         self.camera = cv2.VideoCapture(self.device)
 
         # self.camera.set(cv2.CAP_PROP_FPS, 20)
-        self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
-        self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
+        self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_SIZE[0])
+        self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_SIZE[1])
 
         if not self.camera.isOpened():
             raise CameraError('Failed to open camera!')
