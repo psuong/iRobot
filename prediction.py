@@ -91,23 +91,23 @@ def main(video_path, show_window=True):
                                     (0, 20),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, 255)
                         print("Right")
-                        rover.forward_right()
+                        # rover.forward_right()
                     elif d_S > width:
                         cv2.putText(frame, "Left: DM: {}, DS: {}, Frame Width: {}".format(d_M, d_S, width),
                                     (0, 20),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, 255)
                         print("Left")
-                        rover.forward_left()
+                        # rover.forward_left()
                     else:
                         cv2.putText(frame, "Straight: DM: {}, DS: {}, Frame Width: {}".format(d_M, d_S, width),
                                     (0, 20),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, 255)
                         print("Straight")
-                        rover.forward()
+                        # rover.forward()
                 else:
                     cv2.putText(frame, "Straight", (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, 255)
                     print("Straight")
-                    rover.forward()
+                    # rover.forward()
 
                 warning_y = (best_fit[0] + int(width / 4), best_fit[1] + int(height / 2))
                 # danger box
