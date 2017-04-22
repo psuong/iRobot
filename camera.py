@@ -126,6 +126,7 @@ class Camera(object):
         self.device = device
         self.camera = cv2.VideoCapture(self.device)
 
+        # self.camera.set(cv2.CAP_PROP_FPS, 20)
         self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_SIZE[0])
         self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_SIZE[1])
 
@@ -205,6 +206,5 @@ class VideoReader(object):
 if __name__ == '__main__':
     cam = Camera(image=True, video=True)
     for i in range(0, 50):
-        print(i)
-        cam.frame()
+        cv2.imshow("f", cam.frame())
     cam.close()
