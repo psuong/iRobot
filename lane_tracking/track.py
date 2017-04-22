@@ -9,7 +9,6 @@ class LaneTracker:
         self.meas_size = 4 * self.n_lanes
         self.state_size = self.meas_size * 2
         self.contr_size = 0
-
         self.kf = cv2.KalmanFilter(self.state_size, self.meas_size, self.contr_size)
         self.kf.transitionMatrix = np.eye(self.state_size, dtype=np.float32)
         self.kf.measurementMatrix = np.zeros((self.meas_size, self.state_size), np.float32)
