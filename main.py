@@ -82,6 +82,7 @@ def video_process():
                 cv2.line(image, r_p1, r_p2, (0, 255, 0), 2)
         else:
             print(points)
+            continue
 
         image = image_processor.horizontal_line(image, width, height)
         image = image_processor.vertical_line(image, width, height)
@@ -90,7 +91,7 @@ def video_process():
 
         # cv2.imshow("Edged", edged_image)
         # cv2.imshow("Hough Transform", hough_transformed_image)
-        if 0 in points[0] or 0 in points[1] or 0 in points[2] or 0 in points[3]:
+        if 0 in points[0] or 0 in points[1]:
             continue
         best_fit = ransac_vanishing_point.ransac_vanishing_point_detection(
             [[points[0][0], points[0][1], points[0][2], points[0][3]],
