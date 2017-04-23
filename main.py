@@ -1,10 +1,9 @@
 import time
-
+import os
 from image_processor import FileManager, ImageProcessor, ESC_KEY
 from camera import IMG_DIR, VIDEO_DIR, VideoReader, FRAME_SIZE
 from calibration import calibrate_canny
 import cv2
-import numpy as np
 from lane_tracking.detect import LaneDetector
 from lane_tracking import ransac_vanishing_point
 
@@ -50,7 +49,10 @@ def video_process():
     image_processor = ImageProcessor(threshold_1=1000, threshold_2=2000)
     image_processor.aperture_size = 5
     # video = VideoReader("{}{}".format(VIDEO_DIR, "hough_transform_sample.mp4"))
-    video = VideoReader("http://192.168.1.107:8080/?action=stream")
+    if os.environ.get('VIDEO_PATH') is not None:
+        video = VideoReader(0)
+    else:
+        video = VideoReader("http://192.168.1.107:8080/?action=stream")
 
     capture = video.open_video()
 
@@ -88,7 +90,8 @@ def video_process():
 
         # cv2.imshow("Edged", edged_image)
         # cv2.imshow("Hough Transform", hough_transformed_image)
-
+        if 0 in points[0] or 0 in points[1] or 0 in points[2] or 0 in points[3]:
+            continue
         best_fit = ransac_vanishing_point.ransac_vanishing_point_detection(
             [[points[0][0], points[0][1], points[0][2], points[0][3]],
              [points[1][0], points[1][1], points[1][2], points[1][3]]])
