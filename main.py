@@ -91,11 +91,12 @@ def video_process():
 
         # cv2.imshow("Edged", edged_image)
         # cv2.imshow("Hough Transform", hough_transformed_image)
-        if 0 in points[0] or 0 in points[1]:
+        try:
+            best_fit = ransac_vanishing_point.ransac_vanishing_point_detection(
+                [[points[0][0], points[0][1], points[0][2], points[0][3]],
+                 [points[1][0], points[1][1], points[1][2], points[1][3]]])
+        except ZeroDivisionError:
             continue
-        best_fit = ransac_vanishing_point.ransac_vanishing_point_detection(
-            [[points[0][0], points[0][1], points[0][2], points[0][3]],
-             [points[1][0], points[1][1], points[1][2], points[1][3]]])
         if best_fit:
             cv2.circle(frame, best_fit, 10, (0, 244, 255), thickness=5)
 
