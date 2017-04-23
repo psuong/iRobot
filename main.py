@@ -162,12 +162,15 @@ def video_process():
                           thickness=2)
             time.sleep(.5)
 
-        cv2.imshow("", image)
-        key = cv2.waitKey(ESC_KEY)
+        try:
+            cv2.imshow("", image)
+            key = cv2.waitKey(ESC_KEY)
 
-        if ESC_KEY == 27:
-            break
-
+            if ESC_KEY == 27:
+                break
+        except:
+            # Doesn't support imshow
+            pass
 
 if __name__ == "__main__":
     # main()

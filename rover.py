@@ -32,6 +32,9 @@ class RoverClient(object):
 
             self.en_A = mraa.Pwm(pwm[1])
             self.en_B = mraa.Pwm(pwm[0])
+
+            self.en_A.enable(True)
+            self.en_B.enable(True)
     
             self.halt()
             self.en_A.write(.5)
