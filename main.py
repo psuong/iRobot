@@ -52,6 +52,7 @@ def main():
         width = frame.shape[1]
 
         image = frame # Cache the frame being rendered
+        # image = image_processor.bilateral_blur(image)
         points = lane_detect.detect(image)
         image_processor.find_points(width, height)
 
@@ -81,7 +82,17 @@ def image_process():
     file_manager = FileManager()
     # Hard coded the threshold values for the images
     image_processor = ImageProcessor(threshold_1=114, threshold_2=237)
-    file_manager.get_image_files(IMG_DIR)
+    images = file_manager.get_image_files(IMG_DIR)
+
+    for image_path in images:
+        image = cv2.imread(image_path)
+        blurred_image = image_processor.bilateral_blur(image)
+        cv2.imshow("Original", image)
+        cv2.imshow("Blurred", blurred_image)
+
+        while True:
+            if cv2.waitKey(1) & 0XFF == ord("q"):
+                break
 
 
 def video_process():
@@ -222,3 +233,4 @@ if __name__ == "__main__":
     main()
     # video_process()
     # calibrate_canny("{}{}".format(VIDEO_DIR, "home_grown.webm"))
+    # image_process()

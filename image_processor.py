@@ -35,13 +35,14 @@ class ImageProcessor(object):
         }
 
     def set_raw_image(self, raw_image: np.ndarray):
-        self.raw_image = raw_image
+        pass
 
     def edge_detect(self, image: np.ndarray) -> np.ndarray:
         # self.set_raw_image(image)
+        # TODO: Fix the image returned
         cv2.threshold(image, 128, 255, cv2.THRESH_BINARY_INV)
-        self.edged_image = cv2.Canny(image, self.threshold_1, self.threshold_2, apertureSize=self.aperture_size)
-        return self.edged_image
+        image = cv2.Canny(image, self.threshold_1, self.threshold_2, apertureSize=self.aperture_size)
+        return image
 
     def bilateral_blur(self, image: np.ndarray) -> np.ndarray:
         """
@@ -49,7 +50,8 @@ class ImageProcessor(object):
         :param image: Image to perform the blur on
         :return: The blurred image
         """
-        pass
+        blurred_image = cv2.bilateralFilter(image, 20, 100, 100)
+        return blurred_image
 
     def find_points(self, width, height) -> None:
         """
@@ -68,7 +70,6 @@ class ImageProcessor(object):
         self.points["mid_line"] = (mid_high, mid_low)
         self.points["left_bound"] = left_bound
         self.points["right_bound"] = right_bound
-
 
     def draw_horizontal_line(self, image: np.ndarray) -> np.ndarray:
         """
