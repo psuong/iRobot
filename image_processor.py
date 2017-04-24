@@ -29,9 +29,9 @@ class ImageProcessor(object):
         self.threshold_2 = threshold_2 or 200
         self.aperture_size = 3
         self.points = {
-            "midline": ((), ()), # Represents a pair of points
+            "mid_line": ((), ()), # Represents a pair of points
             "left_bound": (0, 0), # Left - a cartesian coordinate
-            "right bound": (0, 0) # Right - a cartesian coordinate
+            "right_bound": (0, 0) # Right - a cartesian coordinate
         }
 
     def set_raw_image(self, raw_image: np.ndarray):
@@ -60,9 +60,8 @@ class ImageProcessor(object):
         """
         adjust_height = int(height / 2)
         adjust_width = int(width / 2)
-        left_bound = (0, adjust_height)
-        right_bound = (adjust_width, adjust_height)
-
+        left_bound = (0, int(2 * height / 3))
+        right_bound = (width, int(2 * height / 3))
         mid_high = (adjust_width, adjust_height)
         mid_low = (adjust_width, height)
 
@@ -70,13 +69,15 @@ class ImageProcessor(object):
         self.points["left_bound"] = left_bound
         self.points["right_bound"] = right_bound
 
+
     def draw_horizontal_line(self, image: np.ndarray) -> np.ndarray:
         """
         Draws a horizontal line to represent the horizon
         :param image: The image to manipulate
         :return: The manipulated image
         """
-        cv2.line(image, self.points["left_bound"], self.points["right bound"], (255, 0, 0), 2)
+        # print("L: {}, R: {}".format(self.points["left_bound"], self.points["right_bound"]))
+        cv2.line(image, self.points["left_bound"], self.points["right_bound"], (255, 0, 0), 2)
         return image
 
     def draw_midpoint_line(self, image: np.ndarray) -> np.ndarray:

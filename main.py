@@ -15,6 +15,8 @@ try:
 except:
     rover_status = False
 
+LIVE_STREAM = "http://192.168.1.107:8080/?action=stream"
+
 
 def line_intersection(line1, line2):
     xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
@@ -34,8 +36,45 @@ def line_intersection(line1, line2):
 
 
 def main():
-    file_manager = FileManager()
     image_processor = ImageProcessor()
+    if os.environ.get("VIDEO_PATH") is not None:
+        video = VideoReader(0)
+    else:
+        # video = VideoReader(LIVE_STREAM)
+        video = VideoReader("{}{}".format(VIDEO_DIR, "hough_transform_sample.mp4"))
+    cap = video.open_video()
+
+    lane_detect = LaneDetector(50)
+    while cap.isOpened():
+        ret, frame = cap.read()
+
+        height = frame.shape[0]
+        width = frame.shape[1]
+
+        image = frame # Cache the frame being rendered
+        points = lane_detect.detect(image)
+        image_processor.find_points(width, height)
+
+        if points is not None:
+            if points[0] is not None and points[1] is not None:
+                l_p1 = (int(points[0][0]), points[0][1])
+                l_p2 = (int(points[0][2]), points[0][3])
+                r_p1 = (int(points[1][0]), points[1][1])
+                r_p2 = (int(points[1][2]), points[1][3])
+
+                cv2.line(image, l_p1, l_p2, (0, 255, 0), 2)
+                cv2.line(image, r_p1, r_p2, (0, 255, 0), 2)
+            else:
+                # print(points)
+                continue
+
+        image = image_processor.draw_horizontal_line(image)
+        image = image_processor.draw_midpoint_line(image)
+
+        cv2.imshow("", image)
+        if cv2.waitKey(1) & 0xFF == ord("q"):
+            cap.close()
+            break
 
 
 def image_process():
@@ -84,8 +123,10 @@ def video_process():
             print(points)
             continue
 
-        image = image_processor.draw_horizontal_line(image, width, height)
-        image = image_processor.draw_midpoint_line(image, width, height)
+        image_processor.find_points(width, height)
+
+        image = image_processor.draw_horizontal_line(image)
+        image = image_processor.draw_midpoint_line(image)
 
         # hough_transformed_image = image_processor.phough_transform(edged_image, frame)
 
@@ -178,6 +219,6 @@ def video_process():
             pass
 
 if __name__ == "__main__":
-    # main()
-    video_process()
+    main()
+    # video_process()
     # calibrate_canny("{}{}".format(VIDEO_DIR, "home_grown.webm"))
