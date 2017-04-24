@@ -6,6 +6,7 @@ from calibration import calibrate_canny
 import cv2
 from lane_tracking.detect import LaneDetector
 from lane_tracking import ransac_vanishing_point
+from math import fabs
 
 try:
     from rover import RoverClient
@@ -16,6 +17,8 @@ except:
     rover_status = False
 
 LIVE_STREAM = "http://192.168.1.107:8080/?action=stream"
+WIDTH = 640
+HEIGHT = 480
 
 
 def line_intersection(line1, line2):
@@ -55,7 +58,25 @@ def get_intersection(line_1: tuple, line_2: tuple) -> tuple:
         :param point: (x, y) coordinate
         :return: b, the y intercept
         """
-        return float(point[1]) - slope * float(point[0])
+        mx = point[0] * slope
+        lhs = point[1] - mx
+        return lhs
+
+    def get_common_point(m1: float, m2: float, b1: float, b2: float) -> tuple:
+        """
+        Returns the point of intersection given two lines
+        :param m1: slope of line 1
+        :param m2: slope of line 2
+        :param b1: y intersect of line 1
+        :param b2: y intersect of line 2
+        :return: The intersected point
+        """
+        b_diff = b2 - b1
+        m_diff = m2 - m1
+
+        x = b_diff / m_diff
+        y = m1 * x + b1
+        return int(abs(x)), int(abs(y - HEIGHT))
 
     m_1 = get_slope(line_1)
     m_2 = get_slope(line_2)
@@ -63,8 +84,13 @@ def get_intersection(line_1: tuple, line_2: tuple) -> tuple:
     b_1 = get_y_intersect(m_1, line_1[0])
     b_2 = get_y_intersect(m_2, line_2[0])
 
-    print("Line 1: Slope: {}, Intersect: {}".format(m_1, b_1))
-    print("Line 2: Slope: {}, Intersect: {}".format(m_2, b_2))
+    common_point = get_common_point(m_1, m_2, b_1, b_2)
+
+    # print("Line 1: Slope: {}, Intersect: {}".format(m_1, b_1))
+    # print("Line 2: Slope: {}, Intersect: {}".format(m_2, b_2))
+    # print("Common Point: ", common_point)
+
+    return common_point
 
 
 def main():
@@ -98,10 +124,10 @@ def main():
                 cv2.line(image, l_p1, l_p2, (0, 255, 0), 2)
                 cv2.line(image, r_p1, r_p2, (0, 255, 0), 2)
 
-                intersection = line_intersection((l_p1, l_p2), (r_p1, r_p2))
+                # intersection = line_intersection((l_p1, l_p2), (r_p1, r_p2))
+                intersection = get_intersection((l_p1, l_p2), (r_p1, r_p2))
 
-                if intersection is not None:
-                    cv2.circle(image, tuple(intersection), 1, (0, 255, 0), thickness=2)
+                cv2.circle(image, intersection, 3, (0, 255, 255), thickness=2)
 
             else:
                 # print(points)
@@ -114,23 +140,6 @@ def main():
         if cv2.waitKey(1) & 0xFF == ord("q"):
             cap.close()
             break
-
-
-def image_process():
-    file_manager = FileManager()
-    # Hard coded the threshold values for the images
-    image_processor = ImageProcessor(threshold_1=114, threshold_2=237)
-    images = file_manager.get_image_files(IMG_DIR)
-
-    for image_path in images:
-        image = cv2.imread(image_path)
-        blurred_image = image_processor.bilateral_blur(image)
-        cv2.imshow("Original", image)
-        cv2.imshow("Blurred", blurred_image)
-
-        while True:
-            if cv2.waitKey(1) & 0XFF == ord("q"):
-                break
 
 
 def video_process():
