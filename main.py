@@ -84,8 +84,8 @@ def video_process():
             print(points)
             continue
 
-        image = image_processor.horizontal_line(image, width, height)
-        image = image_processor.vertical_line(image, width, height)
+        image = image_processor.draw_horizontal_line(image, width, height)
+        image = image_processor.draw_midpoint_line(image, width, height)
 
         # hough_transformed_image = image_processor.phough_transform(edged_image, frame)
 

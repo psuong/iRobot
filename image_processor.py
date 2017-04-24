@@ -28,9 +28,11 @@ class ImageProcessor(object):
         self.threshold_1 = threshold_1 or 100
         self.threshold_2 = threshold_2 or 200
         self.aperture_size = 3
-        self.left_bound = (0, 0)
-        self.right_bound = (0, 0)
-        self.mid_point = (0, 0)
+        self.points = {
+            "midline": ((), ()), # Represents a pair of points
+            "left_bound": (0, 0), # Left - a cartesian coordinate
+            "right bound": (0, 0) # Right - a cartesian coordinate
+        }
 
     def set_raw_image(self, raw_image: np.ndarray):
         self.raw_image = raw_image
@@ -41,23 +43,43 @@ class ImageProcessor(object):
         self.edged_image = cv2.Canny(image, self.threshold_1, self.threshold_2, apertureSize=self.aperture_size)
         return self.edged_image
 
-    def horizontal_line(self, image, width, height):
-        adjusted_height = int(2 * height / 3)
-        adjusted_width = int(width / 2)
-        self.left_bound = (0, adjusted_height)
-        self.right_bound = (width, adjusted_height)
-        self.mid_point = (adjusted_width, adjusted_height)
-        cv2.line(image, self.left_bound, self.right_bound, (255, 0, 0), 2)
+    def find_points(self, width, height):
+        """
+        Computes the midpoints and the points on the extremities
+        :param width: width of the image
+        :param height: height of the image
+        :return: 
+        """
+        adjust_height = int(height / 2)
+        adjust_width = int(width / 2)
+        left_bound = (0, adjust_height)
+        right_bound = (adjust_width, adjust_height)
+
+        mid_high = (adjust_width, adjust_height)
+        mid_low = (adjust_width, height)
+
+        self.points["mid_line"] = (mid_high, mid_low)
+        self.points["left_bound"] = left_bound
+        self.points["right_bound"] = right_bound
+
+    def draw_horizontal_line(self, image):
+        """
+        Draws a horizontal line to represent the horizon
+        :param image: The image to manipulate
+        :return: The manipulated image
+        """
+        cv2.line(image, self.points["left_bound"], self.points["right bound"], (255, 0, 0), 2)
         return image
 
-    def vertical_line(self, image, width, height):
-        adjusted_height = int(height / 2)
-        adjusted_width = int(width / 2)
-
-        mid_high = (adjusted_width, adjusted_height)
-        mid_low = (adjusted_width, height)
-
-        cv2.line(image, mid_low, mid_high, (255, 0, 0), 2)
+    def draw_midpoint_line(self, image, width, height):
+        """
+        Draws the perceived center of the image, this supposedly represents the middle of the road.
+        :param image: The image to manipulate
+        :param width: The image's width
+        :param height: The image's height
+        :return: the manipulated image
+        """
+        cv2.line(image, self.points["mid_line"][0], self.points["mid_line"][1], (255, 0, 0), 2)
         return image
 
     def phough_transform(self, edged_image: np.ndarray, image: np.ndarray) -> np.ndarray:
