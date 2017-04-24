@@ -43,7 +43,15 @@ class ImageProcessor(object):
         self.edged_image = cv2.Canny(image, self.threshold_1, self.threshold_2, apertureSize=self.aperture_size)
         return self.edged_image
 
-    def find_points(self, width, height):
+    def bilateral_blur(self, image: np.ndarray) -> np.ndarray:
+        """
+        Performs a bilateral blue to reduce noise
+        :param image: Image to perform the blur on
+        :return: The blurred image
+        """
+        pass
+
+    def find_points(self, width, height) -> None:
         """
         Computes the midpoints and the points on the extremities
         :param width: width of the image
@@ -62,7 +70,7 @@ class ImageProcessor(object):
         self.points["left_bound"] = left_bound
         self.points["right_bound"] = right_bound
 
-    def draw_horizontal_line(self, image):
+    def draw_horizontal_line(self, image: np.ndarray) -> np.ndarray:
         """
         Draws a horizontal line to represent the horizon
         :param image: The image to manipulate
@@ -71,12 +79,10 @@ class ImageProcessor(object):
         cv2.line(image, self.points["left_bound"], self.points["right bound"], (255, 0, 0), 2)
         return image
 
-    def draw_midpoint_line(self, image, width, height):
+    def draw_midpoint_line(self, image: np.ndarray) -> np.ndarray:
         """
         Draws the perceived center of the image, this supposedly represents the middle of the road.
         :param image: The image to manipulate
-        :param width: The image's width
-        :param height: The image's height
         :return: the manipulated image
         """
         cv2.line(image, self.points["mid_line"][0], self.points["mid_line"][1], (255, 0, 0), 2)
