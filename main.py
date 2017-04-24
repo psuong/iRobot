@@ -48,7 +48,7 @@ def get_intersection(line_1: tuple, line_2: tuple) -> tuple:
     def get_slope(line: tuple) -> float:
         p1 = line[0]
         p2 = line[1]
-        return float((p1[1] - p2[1]) / (p1[0] - p2[0]))
+        return float((p2[1] - p1[1]) / (p2[0] - p1[0]))
 
     def get_y_intersect(slope: float, point: tuple) -> float:
         """
@@ -62,7 +62,7 @@ def get_intersection(line_1: tuple, line_2: tuple) -> tuple:
         lhs = point[1] - mx
         return lhs
 
-    def get_common_point(m1: float, m2: float, b1: float, b2: float) -> tuple:
+    def get_common_point(m1: float, m2: float, b1: float, b2: float) -> tuple or None:
         """
         Returns the point of intersection given two lines
         :param m1: slope of line 1
@@ -74,22 +74,25 @@ def get_intersection(line_1: tuple, line_2: tuple) -> tuple:
         b_diff = b2 - b1
         m_diff = m2 - m1
 
-        x = b_diff / m_diff
-        y = m1 * x + b1
-        return int(abs(x)), int(abs(y - HEIGHT))
+        x = b_diff / -m_diff
+        y_1 = m1 * x + b1
+        y_2 = m2 * x + b2
+
+        if y_1 == y_2:
+            print("True", int(x), int(y_1), int(y_2))
+            return int(x), int(y_1)
+        else:
+            print(int(x), int(y_1), int(y_2))
+
+        return None
 
     m_1 = get_slope(line_1)
     m_2 = get_slope(line_2)
 
-    b_1 = get_y_intersect(m_1, line_1[0])
-    b_2 = get_y_intersect(m_2, line_2[0])
+    b_1 = get_y_intersect(m_1, line_1[1])
+    b_2 = get_y_intersect(m_2, line_2[1])
 
     common_point = get_common_point(m_1, m_2, b_1, b_2)
-
-    # print("Line 1: Slope: {}, Intersect: {}".format(m_1, b_1))
-    # print("Line 2: Slope: {}, Intersect: {}".format(m_2, b_2))
-    # print("Common Point: ", common_point)
-
     return common_point
 
 
@@ -126,8 +129,9 @@ def main():
 
                 # intersection = line_intersection((l_p1, l_p2), (r_p1, r_p2))
                 intersection = get_intersection((l_p1, l_p2), (r_p1, r_p2))
-
-                cv2.circle(image, intersection, 3, (0, 255, 255), thickness=2)
+                if intersection is not None:
+                    # print(intersection)
+                    cv2.circle(image, intersection, 3, (0, 255, 255), thickness=2)
 
             else:
                 # print(points)
