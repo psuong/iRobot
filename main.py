@@ -35,6 +35,29 @@ def line_intersection(line1, line2):
     return [int(x), int(y)]
 
 
+def get_intersection(line_1:tuple, line_2: tuple) -> tuple:
+    """
+    Finds the intersection of two lines
+    :param line_1: A pair of (x,y) coordinates defining a line
+    :param line_2: A pair of (x`, y`) coordinates defining a line
+    :return: Coordinate defining the intersection
+    """
+    def get_slope(line:tuple) -> float:
+        p1 = line[0]
+        p2 = line[1]
+        return (p1[1] - p2[1]) / (p1[0] - p2[0])
+
+    def get_y_intersect(slope: float, point: tuple) -> float:
+        """
+        Gets the y intersect of a line
+        :param slope: slope of the line
+        :param point: (x, y) coordinate
+        :return: b, the y intercept
+        """
+        pass
+    pass
+
+
 def main():
     image_processor = ImageProcessor()
     if os.environ.get("VIDEO_PATH") is not None:
@@ -52,7 +75,7 @@ def main():
         width = frame.shape[1]
 
         image = frame # Cache the frame being rendered
-        # image = image_processor.bilateral_blur(image)
+        image = image_processor.bilateral_blur(image) # Maybe execute this on a different thread - pretty slow right now
         points = lane_detect.detect(image)
         image_processor.find_points(width, height)
 
@@ -65,6 +88,12 @@ def main():
 
                 cv2.line(image, l_p1, l_p2, (0, 255, 0), 2)
                 cv2.line(image, r_p1, r_p2, (0, 255, 0), 2)
+
+                intersection = line_intersection((l_p1, l_p2), (r_p1, r_p2))
+
+                if intersection is not None:
+                    cv2.circle(image, tuple(intersection), 1, (0, 255, 0), thickness=2)
+
             else:
                 # print(points)
                 continue
