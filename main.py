@@ -48,7 +48,10 @@ def get_intersection(line_1: tuple, line_2: tuple) -> tuple:
     def get_slope(line: tuple) -> float:
         p1 = line[0]
         p2 = line[1]
-        return float((p2[1] - p1[1]) / (p2[0] - p1[0]))
+        try:
+            return float((p2[1] - p1[1]) / (p2[0] - p1[0]))
+        except ZeroDivisionError:
+            return float(p2[1] - p1[1])
 
     def get_y_intersect(slope: float, point: tuple) -> float:
         """
@@ -78,13 +81,7 @@ def get_intersection(line_1: tuple, line_2: tuple) -> tuple:
         y_1 = m1 * x + b1
         y_2 = m2 * x + b2
 
-        if y_1 == y_2:
-            print("True", int(x), int(y_1), int(y_2))
-            return int(x), int(y_1)
-        else:
-            print(int(x), int(y_1), int(y_2))
-
-        return None
+        return int(x), int(y_1)
 
     m_1 = get_slope(line_1)
     m_2 = get_slope(line_2)
@@ -127,11 +124,12 @@ def main():
                 cv2.line(image, l_p1, l_p2, (0, 255, 0), 2)
                 cv2.line(image, r_p1, r_p2, (0, 255, 0), 2)
 
-                # intersection = line_intersection((l_p1, l_p2), (r_p1, r_p2))
+                intersection_1 = line_intersection((l_p1, l_p2), (r_p1, r_p2))
                 intersection = get_intersection((l_p1, l_p2), (r_p1, r_p2))
                 if intersection is not None:
                     # print(intersection)
                     cv2.circle(image, intersection, 3, (0, 255, 255), thickness=2)
+                    # cv2.circle(image, tuple(intersection_1), 3, (255, 255, 0), thickness=2)
 
             else:
                 # print(points)
@@ -141,7 +139,7 @@ def main():
         image = image_processor.draw_midpoint_line(image)
 
         cv2.imshow("", image)
-        if cv2.waitKey(1) & 0xFF == ord("q"):
+        if cv2.waitKey(100) & 0xFF == ord("q"):
             cap.close()
             break
 
@@ -153,7 +151,8 @@ def video_process():
     if os.environ.get('VIDEO_PATH') is not None:
         video = VideoReader(0)
     else:
-        video = VideoReader("http://192.168.1.107:8080/?action=stream")
+        video = VideoReader("{}{}".format(VIDEO_DIR, "home_grown.webm"))
+        # video = VideoReader("http://192.168.1.107:8080/?action=stream")
 
     capture = video.open_video()
 
@@ -190,14 +189,11 @@ def video_process():
         image = image_processor.draw_horizontal_line(image)
         image = image_processor.draw_midpoint_line(image)
 
-        # hough_transformed_image = image_processor.phough_transform(edged_image, frame)
-
-        # cv2.imshow("Edged", edged_image)
-        # cv2.imshow("Hough Transform", hough_transformed_image)
         try:
-            best_fit = ransac_vanishing_point.ransac_vanishing_point_detection(
-                [[points[0][0], points[0][1], points[0][2], points[0][3]],
-                 [points[1][0], points[1][1], points[1][2], points[1][3]]])
+            if points[0] is not None and points[1] is not None:
+                best_fit = ransac_vanishing_point.ransac_vanishing_point_detection(
+                    [[points[0][0], points[0][1], points[0][2], points[0][3]],
+                     [points[1][0], points[1][1], points[1][2], points[1][3]]])
         except ZeroDivisionError:
             continue
         if best_fit:
@@ -233,19 +229,21 @@ def video_process():
                     d_M = (best_fit[0] + width / 2) - (((best_fit[1] + height / 2) - M[1]) / M[0])
                     d_S = (((best_fit[1] + height / 2) - S[1]) / S[0]) - (best_fit[0] - width / 2)
 
-                if d_M > width:
-                    # print("DM: {}, DS: {}, Image Width: {}".format(d_M, d_S, width / 4))
-                    cv2.putText(frame, "Right: DM: {}, DS: {}, Frame Width: {}".format(d_M, d_S, width),
-                                (0, 20),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, 255)
-                    print("Right")
-                    if rover_status:
-                        rover.forward_right()
-                elif d_S > width:
+                print("DM: {}, DS: {}, Width / 4: {}".format(d_M, d_S, width / 4))
+                print("m: {}, s: {}".format(M, S))
+
+                if d_M > width / 4:
                     cv2.putText(frame, "Left: DM: {}, DS: {}, Frame Width: {}".format(d_M, d_S, width),
                                 (0, 20),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, 255)
                     print("Left")
+                    if rover_status:
+                        rover.forward_right()
+                elif d_S > width / 4:
+                    cv2.putText(frame, "Right: DM: {}, DS: {}, Frame Width: {}".format(d_M, d_S, width),
+                                (0, 20),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, 255)
+                    print("Right")
                     if rover_status:
                         rover.forward_left()
                 else:
@@ -281,7 +279,7 @@ def video_process():
             pass
 
 if __name__ == "__main__":
-    main()
-    # video_process()
+    # main()
+    video_process()
     # calibrate_canny("{}{}".format(VIDEO_DIR, "home_grown.webm"))
     # image_process()

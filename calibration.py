@@ -23,7 +23,7 @@ def calibrate_canny(video_path):
 
         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
 
-        # Create the trackbars
+        # Create the
         cv2.createTrackbar(threshold1_name, window_name, image_processor.threshold_1, 1000, void_delegate)
         cv2.createTrackbar(threshold2_name, window_name, image_processor.threshold_2, 2000, void_delegate)
         cv2.createTrackbar(aperture_name, window_name, 3, 10, void_delegate)
