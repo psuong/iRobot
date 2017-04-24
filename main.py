@@ -35,27 +35,36 @@ def line_intersection(line1, line2):
     return [int(x), int(y)]
 
 
-def get_intersection(line_1:tuple, line_2: tuple) -> tuple:
+def get_intersection(line_1: tuple, line_2: tuple) -> tuple:
     """
     Finds the intersection of two lines
     :param line_1: A pair of (x,y) coordinates defining a line
     :param line_2: A pair of (x`, y`) coordinates defining a line
     :return: Coordinate defining the intersection
     """
-    def get_slope(line:tuple) -> float:
+    def get_slope(line: tuple) -> float:
         p1 = line[0]
         p2 = line[1]
-        return (p1[1] - p2[1]) / (p1[0] - p2[0])
+        return float((p1[1] - p2[1]) / (p1[0] - p2[0]))
 
     def get_y_intersect(slope: float, point: tuple) -> float:
         """
-        Gets the y intersect of a line
+        Gets the y intersect of a line, the equation is y = mx + b,
+        To get b: it is: b = y - mx
         :param slope: slope of the line
         :param point: (x, y) coordinate
         :return: b, the y intercept
         """
-        pass
-    pass
+        return float(point[1]) - slope * float(point[0])
+
+    m_1 = get_slope(line_1)
+    m_2 = get_slope(line_2)
+
+    b_1 = get_y_intersect(m_1, line_1[0])
+    b_2 = get_y_intersect(m_2, line_2[0])
+
+    print("Line 1: Slope: {}, Intersect: {}".format(m_1, b_1))
+    print("Line 2: Slope: {}, Intersect: {}".format(m_2, b_2))
 
 
 def main():
@@ -64,7 +73,7 @@ def main():
         video = VideoReader(0)
     else:
         # video = VideoReader(LIVE_STREAM)
-        video = VideoReader("{}{}".format(VIDEO_DIR, "hough_transform_sample.mp4"))
+        video = VideoReader("{}{}".format(VIDEO_DIR, "home_grown.webm"))
     cap = video.open_video()
 
     lane_detect = LaneDetector(50)
