@@ -15,19 +15,6 @@ class DataCollector(object):
         self.F_RIGHT = 4
         self.F_LEFT = 5
 
-
-    def test_pygame(self):
-        #Testing pygame
-        pygame.init()
-        pygame.display.set_mode()
-        while True:
-            for evt in pygame.event.get():
-                if evt.type == KEYDOWN:
-                    print("Help")
-                    keyinput = pygame.key.get_pressed()
-                    return
-
-
     def process_images(self, video):
         #TODO: change this to a stream computation
 
@@ -40,20 +27,26 @@ class DataCollector(object):
         labels = []
         pygame.init()
         screen = pygame.display.set_mode((640, 480))
+
         while video.isOpened():
             ret, frame = video.read()
             if not ret:
                 break
-            screen.fill([0,0,0])
+
+            #keep count of frames
             frames += 1
+
+            #draw to screen using pygame
+            screen.fill([0,0,0])
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame = np.rot90(frame)
             frame = pygame.surfarray.make_surface(frame)
             screen.blit(frame, (0,0))
             pygame.display.update()
             pygame.time.wait(33) #30fps
-            keyinput = pygame.key.get_pressed()
 
+            #get keypresses
+            keyinput = pygame.key.get_pressed()
             if keyinput[pygame.K_UP]:
                 print("Forward")
                 labels.append(self.FORW)
@@ -73,11 +66,10 @@ class DataCollector(object):
             for e in pygame.event.get():
                 pass
 
-
+        #labels now has a label for each videoframe
         print(labels)
         print(len(labels))
         print(frames)
-        #Number of labels and number of frames should be equal
 
 if __name__ == '__main__':
     videopath = "./floor.mp4"
