@@ -20,8 +20,14 @@ class DataCollector(object):
 
     def process_images(self, video):
         #TODO: change this to a stream computation
-        #unless we want
 
+        frames = 0
+        saved_frames = 0
+
+        #for ML purposes, store images as numpy arrays
+        #might want to convert to storing results of lane detection
+        imglist = []
+        labels = []
 
         while video.isOpened():
             ret, frame = video.read()
