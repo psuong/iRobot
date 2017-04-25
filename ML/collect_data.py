@@ -17,9 +17,13 @@ class DataCollector(object):
 
     def process_images(self, video):
         #TODO: change this to a stream computation
+        #right now it works on prerecorded videos
 
         frames = 0
         saved_frames = 0
+
+        framearray = np.zeros((1, 307200))
+        labelarray = np.zeros((1,4))
 
         #for ML purposes, store images as numpy arrays
         #might want to convert to storing results of lane detection
@@ -45,6 +49,9 @@ class DataCollector(object):
             pygame.display.update()
             pygame.time.wait(33) #30fps
 
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            gray.reshape(1, 307200).astype(np.float32)
+
             #get keypresses
             keyinput = pygame.key.get_pressed()
             if keyinput[pygame.K_UP]:
@@ -66,13 +73,25 @@ class DataCollector(object):
             for e in pygame.event.get():
                 pass
 
+            np.vstack(framearray, gray)
+            labelrow = np.zeros((1,4))
+
+            #TODO: modify this for more directions
+            #than 4
+            labelrow[labels[-1]] = 1
+            np.vstack((labelarray, labelrow))
+
         #labels now has a label for each videoframe
         print(labels)
         print(len(labels))
         print(frames)
 
-        stored_labels = np.asarray(labels)
-        np.save("videolabels", stored_labels)
+
+        
+        np.save("videolabels", labelarray)
+        np.save("framedata", framearray)
+
+
 
 if __name__ == '__main__':
     videopath = "./floor.mp4"
