@@ -40,7 +40,6 @@ class DataCollector(object):
         labels = []
         pygame.init()
         screen = pygame.display.set_mode((640, 480))
-        pygame.display.iconify()
         while video.isOpened():
             ret, frame = video.read()
             if not ret:
