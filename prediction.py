@@ -33,7 +33,6 @@ def main(video_path, show_window=True):
     sleep(1)
     ticks = 0
 
-    lt = track.LaneTracker(2, 0.1, 500)
     ld = detect.LaneDetector(80)
     while True:
         precTick = ticks
@@ -42,9 +41,7 @@ def main(video_path, show_window=True):
 
         frame = cap.frame(delay_write=True)
 
-        predicted = lt.predict(dt)
-
-        lanes = ld.detect(frame)
+        predicted = ld.detect(frame)
 
         if predicted is not None:
             cv2.line(frame, (predicted[0][0], predicted[0][1]), (predicted[0][2], predicted[0][3]), (255, 0, 255), 2)
@@ -91,23 +88,23 @@ def main(video_path, show_window=True):
                                     (0, 20),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, 255)
                         print("Right")
-                        rover.forward_right()
+                        # rover.forward_right()
                     elif d_S > width:
                         cv2.putText(frame, "Left: DM: {}, DS: {}, Frame Width: {}".format(d_M, d_S, width),
                                     (0, 20),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, 255)
                         print("Left")
-                        rover.forward_left()
+                        # rover.forward_left()
                     else:
                         cv2.putText(frame, "Straight: DM: {}, DS: {}, Frame Width: {}".format(d_M, d_S, width),
                                     (0, 20),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, 255)
                         print("Straight")
-                        rover.forward()
+                        # rover.forward()
                 else:
                     cv2.putText(frame, "Straight", (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, 255)
                     print("Straight")
-                    rover.forward()
+                    # rover.forward()
 
                 warning_y = (best_fit[0] + int(width / 4), best_fit[1] + int(height / 2))
                 # danger box
@@ -118,8 +115,7 @@ def main(video_path, show_window=True):
                               thickness=2)
                 cap._write_video_frame(frame)
                 sleep(1)
-        lt.update(lanes)
-        
+
         if show_window:
             cv2.imshow('', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -133,4 +129,4 @@ if __name__ == '__main__':
     # main("vids/straight-2.mp4")
     # main("vids/hough_transform_sample.mp4")
     # main("vids/curved_roads.mp4")
-    main(0, show_window=False)
+    main('http://192.168.1.107:8080/?action=stream', show_window=True)

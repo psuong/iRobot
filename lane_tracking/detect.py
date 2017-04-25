@@ -61,7 +61,7 @@ class LaneDetector:
             y2 = self.road_horizon
             x1 = ((frame_height-y1)/m) + x1
             y1 = frame_height
-        return x1, y1, x2, y2
+        return int(x1), int(y1), int(x2), int(y2)
 
     def detect(self, frame):
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
