@@ -56,13 +56,13 @@ class DataCollector(object):
             elif keyinput[pygame.K_LEFT]:
                 print("Left")
                 labels.append(self.LEFT)
-
             elif keyinput[pygame.K_DOWN]:
                 print("Back")
                 labels.append(self.BACK)
             else:
                 labels.append(-1)
 
+            #pygame event queue must be refreshed
             for e in pygame.event.get():
                 pass
 
@@ -70,6 +70,9 @@ class DataCollector(object):
         print(labels)
         print(len(labels))
         print(frames)
+
+        stored_labels = np.asarray(labels)
+        np.save("videolabels", stored_labels)
 
 if __name__ == '__main__':
     videopath = "./floor.mp4"
