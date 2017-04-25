@@ -6,7 +6,7 @@ from calibration import calibrate_canny
 import cv2
 from lane_tracking.detect import LaneDetector
 from lane_tracking import ransac_vanishing_point
-from math import fabs
+import math
 
 try:
     from rover import RoverClient
@@ -93,57 +93,6 @@ def get_intersection(line_1: tuple, line_2: tuple) -> tuple:
     return common_point
 
 
-def main():
-    image_processor = ImageProcessor()
-    if os.environ.get("VIDEO_PATH") is not None:
-        video = VideoReader(0)
-    else:
-        # video = VideoReader(LIVE_STREAM)
-        video = VideoReader("{}{}".format(VIDEO_DIR, "home_grown.webm"))
-    cap = video.open_video()
-
-    lane_detect = LaneDetector(50)
-    while cap.isOpened():
-        ret, frame = cap.read()
-
-        height = frame.shape[0]
-        width = frame.shape[1]
-
-        image = frame # Cache the frame being rendered
-        image = image_processor.bilateral_blur(image) # Maybe execute this on a different thread - pretty slow right now
-        points = lane_detect.detect(image)
-        image_processor.find_points(width, height)
-
-        if points is not None:
-            if points[0] is not None and points[1] is not None:
-                l_p1 = (int(points[0][0]), points[0][1])
-                l_p2 = (int(points[0][2]), points[0][3])
-                r_p1 = (int(points[1][0]), points[1][1])
-                r_p2 = (int(points[1][2]), points[1][3])
-
-                cv2.line(image, l_p1, l_p2, (0, 255, 0), 2)
-                cv2.line(image, r_p1, r_p2, (0, 255, 0), 2)
-
-                intersection_1 = line_intersection((l_p1, l_p2), (r_p1, r_p2))
-                intersection = get_intersection((l_p1, l_p2), (r_p1, r_p2))
-                if intersection is not None:
-                    # print(intersection)
-                    cv2.circle(image, intersection, 3, (0, 255, 255), thickness=2)
-                    # cv2.circle(image, tuple(intersection_1), 3, (255, 255, 0), thickness=2)
-
-            else:
-                # print(points)
-                continue
-
-        image = image_processor.draw_horizontal_line(image)
-        image = image_processor.draw_midpoint_line(image)
-
-        cv2.imshow("", image)
-        if cv2.waitKey(100) & 0xFF == ord("q"):
-            cap.close()
-            break
-
-
 def video_process():
     image_processor = ImageProcessor(threshold_1=1000, threshold_2=2000)
     image_processor.aperture_size = 5
@@ -151,7 +100,7 @@ def video_process():
     if os.environ.get('VIDEO_PATH') is not None:
         video = VideoReader(0)
     else:
-        video = VideoReader("{}{}".format(VIDEO_DIR, "home_grown.webm"))
+        video = VideoReader("{}{}".format(VIDEO_DIR, "hough_transform_sample.mp4"))
         # video = VideoReader("http://192.168.1.107:8080/?action=stream")
 
     capture = video.open_video()
@@ -165,9 +114,6 @@ def video_process():
 
         height = frame.shape[0]
         width = frame.shape[1]
-
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        edged_image = image_processor.edge_detect(gray)
 
         points = lane_detect.detect(image)
 
@@ -191,91 +137,100 @@ def video_process():
 
         try:
             if points[0] is not None and points[1] is not None:
-                best_fit = ransac_vanishing_point.ransac_vanishing_point_detection(
+                vp = ransac_vanishing_point.ransac_vanishing_point_detection(
                     [[points[0][0], points[0][1], points[0][2], points[0][3]],
                      [points[1][0], points[1][1], points[1][2], points[1][3]]])
+                if vp:
+                    cv2.circle(frame, vp, 10, (0, 244, 255), thickness=5)
+
+                    # warning box
+                    height = frame.shape[0]
+                    width = frame.shape[1]
+
+                    # Draw the warning box
+                    cv2.rectangle(frame, (vp[0] - int(width / 2), vp[1]),
+                                  (vp[0] + int(width / 2), vp[1] + int(height / 2)), (0, 0, 255), thickness=2)
+
+                    # Store the bottom left and right
+                    bottom_left = (vp[0] - int(width / 2), vp[1] + int(height / 2))
+                    bottom_right = (vp[0] + int(width / 2), vp[1] + int(height / 2))
+
+                    # Calculate the coordinates for the left and right hand intersections
+                    M = line_intersection((bottom_left, bottom_right),
+                                          ([points[0][0], points[0][1]], [points[0][2], points[0][3]]))
+                    S = line_intersection((bottom_left, bottom_right),
+                                          ([points[1][0], points[1][1]], [points[1][2], points[1][3]]))
+
+                    if M is not None and S is not None:
+                        # Cache the left hand coordinates and right hand coordinates
+                        a_m = M[0]
+                        b_m = M[1]
+                        a_s = S[0]
+                        b_s = S[1]
+
+                        # Draw the left side of the screen
+                        cv2.line(frame, tuple(M), bottom_left, (66, 244, 89), thickness=5)
+                        # Draw the intersection between the bottom left hand corner and the lane
+                        cv2.circle(frame, tuple(M), radius=5, color=(66, 244, 89), thickness=5)
+                        # Draw the right side of the screen
+                        cv2.line(frame, tuple(S), bottom_right, (66, 244, 89), thickness=5)
+                        # Draw the intersection between the bottom right hand corner and the lane
+                        cv2.circle(frame, tuple(S), radius=5, color=(66, 244, 89), thickness=5)
+
+                        # Calculate the distance between the left and right hand intersections and edges
+                        # of the warning box
+                        d_M = math.sqrt(math.pow((bottom_left[0] - a_m), 2) + math.pow((bottom_left[1] - b_m), 2))
+                        d_S = math.sqrt(math.pow((bottom_right[0] - a_s), 2) + math.pow((bottom_right[1] - b_s), 2))
+
+                        # If the distance between the left and right hand side is too large then we tell the rover
+                        # to turn left or right
+                        if d_M > width / 4:
+                            # Turns the rover left
+                            cv2.putText(frame, "Left: DM: {}, DS: {}, Frame Width: {}".format(d_M, d_S, width),
+                                        (0, 20),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255))
+                            print("LEFT")
+                            if rover_status:
+                                rover.forward_left()
+                        elif d_S > height / 4:
+                            # Turns the rover right
+                            cv2.putText(frame, "Right: DM: {}, DS: {}, Frame Width: {}".format(d_M, d_S, width),
+                                        (0, 20),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255))
+                            print("RIGHT")
+                            if rover_status:
+                                rover.forward_right()
+                        else:
+                            cv2.putText(frame, "Straight: DM: {}, DS: {}, Frame Width: {}".format(d_M, d_S, width),
+                                        (0, 20),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255))
+                            print("STRAIGHT")
+                            if rover_status:
+                                rover.forward()
+                    else:
+                        cv2.putText(frame, "Straight", (0, 20),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255))
+                        print("STRAIGHT")
+                        if rover_status:
+                            rover.forward()
+
+                    warning_y = (vp[0] + int(width / 4), vp[1] + int(height / 2))
+                    # danger box
+                    # offset = int(frame.shape[0] / 2 / 2)
+                    # offset = int(frame.shape[1]/4)
+                    cv2.rectangle(frame, (vp[0] - int(width / 4), vp[1]),
+                                  warning_y, (244, 65, 130),
+                                  thickness=2)
+                try:
+                    cv2.imshow("", image)
+                    key = cv2.waitKey(ESC_KEY)
+
+                    if ESC_KEY == 27:
+                        break
+                except:
+                    # Doesn't support imshow
+                    pass
         except ZeroDivisionError:
-            continue
-        if best_fit:
-            cv2.circle(frame, best_fit, 10, (0, 244, 255), thickness=5)
-
-            # warning box
-            height = frame.shape[0]
-            width = frame.shape[1]
-
-            cv2.rectangle(frame, (best_fit[0] - int(width / 2), best_fit[1]),
-                          (best_fit[0] + int(width / 2), best_fit[1] + int(height / 2)), (0, 244, 255), thickness=2)
-            bottom_left = (best_fit[0] - int(width / 2), best_fit[1] + int(height / 2))
-            bottom_right = (best_fit[0] + int(width / 2), best_fit[1] + int(height / 2))
-            M = line_intersection((bottom_left, bottom_right),
-                                  ([points[0][0], points[0][1]], [points[0][2], points[0][3]]))
-            S = line_intersection((bottom_left, bottom_right),
-                                  ([points[1][0], points[1][1]], [points[1][2], points[1][3]]))
-
-            # if M is not None and M[0] >= bottom_left[0] and S is not None and S[0] <= bottom_right[0]:
-            if M is not None and S is not None:
-                # dM[0] -= predicted[0][0]
-                # Draw the left side of the screen
-                cv2.line(frame, tuple(M), bottom_left, (66, 244, 89), thickness=5)
-                cv2.circle(frame, tuple(M), radius=5, color=(66, 244, 89), thickness=5)
-                # Draw the right side of the screen
-                cv2.line(frame, tuple(S), bottom_right, (66, 244, 89), thickness=5)
-                cv2.circle(frame, tuple(S), radius=5, color=(66, 244, 89), thickness=5)
-
-                if M[0] > 0 and not None:
-                    d_M = (((best_fit[1] + height / 2) - M[1]) / M[0]) - (best_fit[0] - width / 2)
-                    d_S = (best_fit[0] + width / 2) - (((best_fit[1] + height / 2) - S[1]) / S[0])
-                else:
-                    d_M = (best_fit[0] + width / 2) - (((best_fit[1] + height / 2) - M[1]) / M[0])
-                    d_S = (((best_fit[1] + height / 2) - S[1]) / S[0]) - (best_fit[0] - width / 2)
-
-                print("DM: {}, DS: {}, Width / 4: {}".format(d_M, d_S, width / 4))
-                print("m: {}, s: {}".format(M, S))
-
-                if d_M > width / 4:
-                    cv2.putText(frame, "Left: DM: {}, DS: {}, Frame Width: {}".format(d_M, d_S, width),
-                                (0, 20),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, 255)
-                    print("Left")
-                    if rover_status:
-                        rover.forward_right()
-                elif d_S > width / 4:
-                    cv2.putText(frame, "Right: DM: {}, DS: {}, Frame Width: {}".format(d_M, d_S, width),
-                                (0, 20),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, 255)
-                    print("Right")
-                    if rover_status:
-                        rover.forward_left()
-                else:
-                    cv2.putText(frame, "Straight: DM: {}, DS: {}, Frame Width: {}".format(d_M, d_S, width),
-                                (0, 20),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, 255)
-                    print("Straight")
-                    if rover_status:
-                        rover.forward()
-            else:
-                cv2.putText(frame, "Straight", (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, 255)
-                print("Straight")
-                if rover_status:
-                    rover.forward()
-
-            warning_y = (best_fit[0] + int(width / 4), best_fit[1] + int(height / 2))
-            # danger box
-            # offset = int(frame.shape[0] / 2 / 2)
-            # offset = int(frame.shape[1]/4)
-            cv2.rectangle(frame, (best_fit[0] - int(width / 4), best_fit[1]),
-                          warning_y, (244, 65, 130),
-                          thickness=2)
-            time.sleep(.5)
-
-        try:
-            cv2.imshow("", image)
-            key = cv2.waitKey(ESC_KEY)
-
-            if ESC_KEY == 27:
-                break
-        except:
-            # Doesn't support imshow
             pass
 
 if __name__ == "__main__":
