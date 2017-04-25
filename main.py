@@ -17,8 +17,7 @@ except:
     rover_status = False
 
 LIVE_STREAM = "http://192.168.1.107:8080/?action=stream"
-WIDTH = 640
-HEIGHT = 480
+image_processor = ImageProcessor(threshold_1=1000, threshold_2=2000)
 
 
 def line_intersection(line1, line2):
@@ -94,9 +93,6 @@ def get_intersection(line_1: tuple, line_2: tuple) -> tuple:
 
 
 def video_process():
-    image_processor = ImageProcessor(threshold_1=1000, threshold_2=2000)
-    image_processor.aperture_size = 5
-    # video = VideoReader("{}{}".format(VIDEO_DIR, "hough_transform_sample.mp4"))
     if os.environ.get('VIDEO_PATH') is not None:
         video = VideoReader(0)
     else:
@@ -123,6 +119,8 @@ def video_process():
                 l_p2 = (int(points[0][2]), points[0][3])
                 r_p1 = (int(points[1][0]), points[1][1])
                 r_p2 = (int(points[1][2]), points[1][3])
+
+                image_processor.update_lanes((l_p1[0], l_p1[1], l_p2[0], l_p2[1]), (r_p1[0], r_p1[1], r_p2[0], r_p2[1]))
 
                 cv2.line(image, l_p1, l_p2, (0, 255, 0), 2)
                 cv2.line(image, r_p1, r_p2, (0, 255, 0), 2)
