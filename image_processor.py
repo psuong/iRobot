@@ -31,7 +31,9 @@ class ImageProcessor(object):
         self.points = {
             "mid_line": ((), ()), # Represents a pair of points
             "left_bound": (0, 0), # Left - a cartesian coordinate
-            "right_bound": (0, 0) # Right - a cartesian coordinate
+            "right_bound": (0, 0), # Right - a cartesian coordinate,
+            "lane_1": ((0, 0), (0, 0)),
+            "lane_2": ((0, 0), (0, 0))
         }
 
     def set_raw_image(self, raw_image: np.ndarray):
@@ -70,6 +72,10 @@ class ImageProcessor(object):
         self.points["mid_line"] = (mid_high, mid_low)
         self.points["left_bound"] = left_bound
         self.points["right_bound"] = right_bound
+
+    def update_lanes(self, lane_1, lane_2):
+        self.points["lane_1"] = lane_1
+        self.points["lane_2"] = lane_2
 
     def draw_horizontal_line(self, image: np.ndarray) -> np.ndarray:
         """
