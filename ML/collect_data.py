@@ -46,6 +46,7 @@ class DataCollector(object):
             if not ret:
                 break
             screen.fill([0,0,0])
+            frames += 1
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame = np.rot90(frame)
             frame = pygame.surfarray.make_surface(frame)
@@ -56,16 +57,28 @@ class DataCollector(object):
 
             if keyinput[pygame.K_UP]:
                 print("Forward")
+                labels.append(self.FORW)
             elif keyinput[pygame.K_RIGHT]:
                 print("Right")
+                labels.append(self.RIGHT)
             elif keyinput[pygame.K_LEFT]:
                 print("Left")
+                labels.append(self.LEFT)
+
             elif keyinput[pygame.K_DOWN]:
                 print("Back")
+                labels.append(self.BACK)
+            else:
+                labels.append(-1)
+
             for e in pygame.event.get():
                 pass
 
 
+        print(labels)
+        print(len(labels))
+        print(frames)
+        #Number of labels and number of frames should be equal
 
 if __name__ == '__main__':
     videopath = "./floor.mp4"
