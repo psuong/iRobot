@@ -2,7 +2,7 @@ import socket
 import os
 import cv2
 
-from .common import UDP_IP_PORT, UDP_IP, UDP_PORT
+from .common import UDP_IP_PORT, UDP_IP, UDP_PORT, Keys
 import camera
 
 
@@ -13,15 +13,15 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 def capture_keys():
     k = cv2.waitKey(0)
     if k == 2490368:  # up
-        sock.sendto(b"up", UDP_IP_PORT)
+        sock.sendto(Keys.KEY_UP.value, UDP_IP_PORT)
     elif k == 2621440:  # down
-        sock.sendto(b"down", UDP_IP_PORT)
+        sock.sendto(Keys.KEY_DOWN.value, UDP_IP_PORT)
     elif k == 2424832:  # left
-        sock.sendto(b"left", UDP_IP_PORT)
+        sock.sendto(Keys.KEY_LEFT.value, UDP_IP_PORT)
     elif k == 2555904:  # right
-        sock.sendto(b"right", UDP_IP_PORT)
+        sock.sendto(Keys.KEY_RIGHT.value, UDP_IP_PORT)
     elif k == 32:
-        sock.sendto(b"space", UDP_IP_PORT)
+        sock.sendto(Keys.KEY_SPACE.value, UDP_IP_PORT)
 
 
 if __name__ == '__main__':
