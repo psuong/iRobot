@@ -22,8 +22,10 @@ class DataCollector(object):
         frames = 0
         saved_frames = 0
 
-        framearray = np.zeros((1, 307200))
-        labelarray = np.zeros((1,4))
+        #307200 pixels in each image
+        #probably need to downscale, training is slow
+        framearray = np.zeros((1, 307200)).astype(np.float32)
+        labelarray = np.zeros((1,4)).astype(np.float32)
 
         #for ML purposes, store images as numpy arrays
         #might want to convert to storing results of lane detection
@@ -41,6 +43,8 @@ class DataCollector(object):
             frames += 1
 
             #draw to screen using pygame
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            gray = gray.reshape(1, 307200).astype(np.float32)
             screen.fill([0,0,0])
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame = np.rot90(frame)
@@ -49,23 +53,22 @@ class DataCollector(object):
             pygame.display.update()
             pygame.time.wait(33) #30fps
 
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            gray.reshape(1, 307200).astype(np.float32)
 
+            labelrow = [0,0,0,0]
             #get keypresses
             keyinput = pygame.key.get_pressed()
             if keyinput[pygame.K_UP]:
                 print("Forward")
-                labels.append(self.FORW)
+                labelrow[self.FORW] = 1
             elif keyinput[pygame.K_RIGHT]:
                 print("Right")
-                labels.append(self.RIGHT)
+                labelrow[self.RIGHT]= 1
             elif keyinput[pygame.K_LEFT]:
                 print("Left")
-                labels.append(self.LEFT)
+                labelrow[self.LEFT]= 1
             elif keyinput[pygame.K_DOWN]:
                 print("Back")
-                labels.append(self.BACK)
+                labelrow[self.BACK] = 1
             else:
                 labels.append(-1)
 
@@ -73,21 +76,24 @@ class DataCollector(object):
             for e in pygame.event.get():
                 pass
 
-            np.vstack(framearray, gray)
-            labelrow = np.zeros((1,4))
+            print(framearray.shape)
+            print(gray.shape)
+            framearray = np.vstack((framearray, gray))
+
+            print(labelrow)
 
             #TODO: modify this for more directions
             #than 4
-            labelrow[labels[-1]] = 1
-            np.vstack((labelarray, labelrow))
+
+            labelarray = np.vstack((labelarray, np.asarray(labelrow).astype(np.float32)))
 
         #labels now has a label for each videoframe
-        print(labels)
+        print(labelarray)
         print(len(labels))
         print(frames)
 
 
-        
+
         np.save("videolabels", labelarray)
         np.save("framedata", framearray)
 
