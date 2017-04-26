@@ -16,7 +16,7 @@ try:
 except:
     rover_status = False
 
-LIVE_STREAM = "http://192.168.1.107:8080/?action=stream"
+LIVE_STREAM = "http://192.168.43.99:8080/?action=stream"
 image_processor = ImageProcessor(threshold_1=1000, threshold_2=2000)
 
 
@@ -96,8 +96,8 @@ def video_process():
     if os.environ.get('VIDEO_PATH') is not None:
         video = VideoReader(0)
     else:
-        video = VideoReader("{}{}".format(VIDEO_DIR, "hough_transform_sample.mp4"))
-        # video = VideoReader("http://192.168.1.107:8080/?action=stream")
+        # video = VideoReader("{}{}".format(VIDEO_DIR, "home_grown.webm"))
+        video = VideoReader(LIVE_STREAM)
 
     capture = video.open_video()
 
@@ -135,11 +135,19 @@ def video_process():
 
         try:
             if points[0] is not None and points[1] is not None:
+                """
                 vp = ransac_vanishing_point.ransac_vanishing_point_detection(
                     [[points[0][0], points[0][1], points[0][2], points[0][3]],
                      [points[1][0], points[1][1], points[1][2], points[1][3]]])
+                """
+
+                line_1 = ((points[0][0], points[0][1]), (points[0][2], points[0][3]))
+                line_2 = ((points[1][0], points[1][1]), (points[1][2], points[1][3]))
+
+                vp = line_intersection(line_1, line_2)
+
                 if vp:
-                    cv2.circle(frame, vp, 10, (0, 244, 255), thickness=5)
+                    cv2.circle(frame, tuple(vp), 10, (0, 244, 255), thickness=5)
 
                     # warning box
                     height = frame.shape[0]
