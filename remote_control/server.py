@@ -6,6 +6,7 @@ import utility
 if utility.does_module_exists('mraa'):
     import mraa
     import rover
+
     car = rover.RoverClient()
     car_move = True
 else:
@@ -13,6 +14,7 @@ else:
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind(UDP_IP_PORT)
+
 
 def receive_loop():
     while True:

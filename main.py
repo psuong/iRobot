@@ -7,6 +7,8 @@ import cv2
 from lane_tracking.detect import LaneDetector
 from lane_tracking import ransac_vanishing_point
 import math
+from remote_control import client
+from remote_control.client import Keys
 
 try:
     from rover import RoverClient
@@ -44,6 +46,7 @@ def get_intersection(line_1: tuple, line_2: tuple) -> tuple:
     :param line_2: A pair of (x`, y`) coordinates defining a line
     :return: Coordinate defining the intersection
     """
+
     def get_slope(line: tuple) -> float:
         p1 = line[0]
         p2 = line[1]
@@ -196,6 +199,7 @@ def video_process():
                                         (0, 20),
                                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255))
                             print("LEFT")
+                            client.handle_key(Keys.KEY_LEFT)
                             if rover_status:
                                 rover.forward_left()
                         elif d_S > height / 4:
@@ -204,6 +208,7 @@ def video_process():
                                         (0, 20),
                                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255))
                             print("RIGHT")
+                            client.handle_key(Keys.KEY_RIGHT)
                             if rover_status:
                                 rover.forward_right()
                         else:
@@ -211,12 +216,14 @@ def video_process():
                                         (0, 20),
                                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255))
                             print("STRAIGHT")
+                            client.handle_key(Keys.KEY_UP)
                             if rover_status:
                                 rover.forward()
                     else:
                         cv2.putText(frame, "Straight", (0, 20),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255))
                         print("STRAIGHT")
+                        client.handle_key(Keys.KEY_UP)
                         if rover_status:
                             rover.forward()
 
@@ -238,6 +245,7 @@ def video_process():
                     pass
         except ZeroDivisionError:
             pass
+
 
 if __name__ == "__main__":
     # main()
