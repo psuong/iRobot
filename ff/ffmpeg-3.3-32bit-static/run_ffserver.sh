@@ -1,1 +1,1 @@
-ffserver -f /etc/ffserver.conf
+./ffserver -f ../ffserver.conf
