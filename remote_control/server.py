@@ -30,6 +30,8 @@ def receive_loop():
                 car.forward_right()
             elif data == Keys.KEY_SPACE:
                 car.halt()
+            else:
+                print("got ", data)
 
 
 if __name__ == '__main__':

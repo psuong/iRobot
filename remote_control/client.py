@@ -27,8 +27,4 @@ def handle_key(k):
 
 
 if __name__ == '__main__':
-    cap = camera.Camera()
-
-    while cap.camera.isOpened():
-        cv2.imshow("stream", cap.frame())
-        capture_keys()
+    sock.sendto("hello", UDP_IP_PORT)

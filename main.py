@@ -18,7 +18,7 @@ try:
 except:
     rover_status = False
 
-LIVE_STREAM = "http://192.168.43.99:8080/?action=stream"
+LIVE_STREAM = "http://192.168.1.107:8080/?action=stream"
 image_processor = ImageProcessor(threshold_1=1000, threshold_2=2000)
 
 
@@ -105,7 +105,7 @@ def video_process():
     capture = video.open_video()
 
     lane_detect = LaneDetector(50)
-
+    print("capture status ", capture.isOpened)
     while capture.isOpened():
         ret, frame = capture.read()
 
