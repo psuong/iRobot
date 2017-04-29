@@ -20,6 +20,7 @@ def receive_loop():
     while True:
         data, addr = sock.recvfrom(1024)
         if car_move:
+            print("got ", data)
             if data == Keys.KEY_UP:
                 car.forward()
             elif data == Keys.KEY_DOWN:
