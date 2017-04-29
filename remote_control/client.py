@@ -15,16 +15,18 @@ def capture_keys():
 
 def handle_key(k):
     print("sending ", k, " to ", UDP_IP_PORT)
-    if k == 2490368:  # up
+    if k == 2490368 or k == Keys.KEY_UP:  # up
         sock.sendto(Keys.KEY_UP.value, UDP_IP_PORT)
-    elif k == 2621440:  # down
+    elif k == 2621440 or k == Keys.KEY_DOWN:  # down
         sock.sendto(Keys.KEY_DOWN.value, UDP_IP_PORT)
-    elif k == 2424832:  # left
+    elif k == 2424832 or k == Keys.KEY_LEFT:  # left
         sock.sendto(Keys.KEY_LEFT.value, UDP_IP_PORT)
-    elif k == 2555904:  # right
+    elif k == 2555904 or k == Keys.KEY_RIGHT:  # right
         sock.sendto(Keys.KEY_RIGHT.value, UDP_IP_PORT)
-    elif k == 32:
+    elif k == 32 or k == Keys.KEY_SPACE:
         sock.sendto(Keys.KEY_SPACE.value, UDP_IP_PORT)
+    else:
+        print("can't process", k)
 
 
 if __name__ == '__main__':

@@ -105,12 +105,13 @@ def video_process():
     capture = video.open_video()
 
     lane_detect = LaneDetector(50)
-    print("capture status ", capture.isOpened)
+    print("capture status ", capture.isOpened())
     while capture.isOpened():
         ret, frame = capture.read()
 
         image = frame
-
+        if frame is None:
+            continue
         height = frame.shape[0]
         width = frame.shape[1]
 
@@ -193,7 +194,7 @@ def video_process():
 
                         # If the distance between the left and right hand side is too large then we tell the rover
                         # to turn left or right
-                        if d_M > width / 4:
+                        if d_M > width:
                             # Turns the rover left
                             cv2.putText(frame, "Left: DM: {}, DS: {}, Frame Width: {}".format(d_M, d_S, width),
                                         (0, 20),
@@ -202,7 +203,7 @@ def video_process():
                             client.handle_key(Keys.KEY_LEFT)
                             if rover_status:
                                 rover.forward_left()
-                        elif d_S > height / 4:
+                        elif d_S > height:
                             # Turns the rover right
                             cv2.putText(frame, "Right: DM: {}, DS: {}, Frame Width: {}".format(d_M, d_S, width),
                                         (0, 20),
