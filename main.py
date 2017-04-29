@@ -115,6 +115,7 @@ def video_process():
         height = frame.shape[0]
         width = frame.shape[1]
 
+        image = image_processor.bilateral_blur(image)
         points = lane_detect.detect(image)
 
         if points is not None:
