@@ -14,6 +14,7 @@ def capture_keys():
 
 
 def handle_key(k):
+    print("sending ", k, " to ", UDP_IP_PORT)
     if k == 2490368:  # up
         sock.sendto(Keys.KEY_UP.value, UDP_IP_PORT)
     elif k == 2621440:  # down
@@ -27,4 +28,4 @@ def handle_key(k):
 
 
 if __name__ == '__main__':
-    sock.sendto("hello", UDP_IP_PORT)
+    sock.sendto(b"hello", UDP_IP_PORT)
