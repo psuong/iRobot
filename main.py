@@ -18,7 +18,7 @@ try:
 except:
     rover_status = False
 
-LIVE_STREAM = "http://192.168.1.107:8080/?action=stream"
+LIVE_STREAM = "http://172.16.12.47:8080/video"
 image_processor = ImageProcessor(threshold_1=1000, threshold_2=2000)
 
 
@@ -99,22 +99,29 @@ def video_process():
     if os.environ.get('VIDEO_PATH') is not None:
         video = VideoReader(0)
     else:
+        print("opening ", LIVE_STREAM)
         # video = VideoReader("{}{}".format(VIDEO_DIR, "home_grown.webm"))
         video = VideoReader(LIVE_STREAM)
 
     capture = video.open_video()
 
     lane_detect = LaneDetector(50)
-    print("capture status ", capture.isOpened())
+    i = 0
+    moduland = 15
+    print("cap status ", capture.isOpened())
     while capture.isOpened():
+        # if i % moduland != 0:
+        #     print('skipping')
+        #     continue
+        # else:
+        #     i += 1
         ret, frame = capture.read()
-
         image = frame
         if frame is None:
             continue
         height = frame.shape[0]
         width = frame.shape[1]
-
+        # image = image_processor.bilateral_blur(image)
         points = lane_detect.detect(image)
 
         if points is not None:
@@ -129,7 +136,12 @@ def video_process():
                 cv2.line(image, l_p1, l_p2, (0, 255, 0), 2)
                 cv2.line(image, r_p1, r_p2, (0, 255, 0), 2)
         else:
-            print(points)
+            print('points is None')
+            cv2.imshow("", image)
+            key = cv2.waitKey(ESC_KEY)
+
+            if ESC_KEY == 27:
+                break
             continue
 
         image_processor.find_points(width, height)
@@ -235,17 +247,17 @@ def video_process():
                     cv2.rectangle(frame, (vp[0] - int(width / 4), vp[1]),
                                   warning_y, (244, 65, 130),
                                   thickness=2)
-                try:
-                    cv2.imshow("", image)
-                    key = cv2.waitKey(ESC_KEY)
+                cv2.imshow("", image)
+                key = cv2.waitKey(ESC_KEY)
 
-                    if ESC_KEY == 27:
-                        break
-                except:
-                    # Doesn't support imshow
-                    pass
+                if ESC_KEY == 27:
+                    break
         except ZeroDivisionError:
-            pass
+            cv2.imshow("", image)
+            key = cv2.waitKey(ESC_KEY)
+
+            if ESC_KEY == 27:
+                break
 
 
 if __name__ == "__main__":
