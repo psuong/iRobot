@@ -1,11 +1,8 @@
-import time
 import os
-from image_processor import FileManager, ImageProcessor, ESC_KEY
-from camera import IMG_DIR, VIDEO_DIR, VideoReader, FRAME_SIZE
-from calibration import calibrate_canny
+from image_processor import ImageProcessor, ESC_KEY
+from camera import VideoReader
 import cv2
 from lane_tracking.detect import LaneDetector
-from lane_tracking import ransac_vanishing_point
 import math
 
 try:
@@ -35,62 +32,6 @@ def line_intersection(line1, line2):
     x = det(d, xdiff) / div
     y = det(d, ydiff) / div
     return [int(x), int(y)]
-
-
-def get_intersection(line_1: tuple, line_2: tuple) -> tuple:
-    """
-    Finds the intersection of two lines
-    :param line_1: A pair of (x,y) coordinates defining a line
-    :param line_2: A pair of (x`, y`) coordinates defining a line
-    :return: Coordinate defining the intersection
-    """
-
-    def get_slope(line: tuple) -> float:
-        p1 = line[0]
-        p2 = line[1]
-        try:
-            return float((p2[1] - p1[1]) / (p2[0] - p1[0]))
-        except ZeroDivisionError:
-            return float(p2[1] - p1[1])
-
-    def get_y_intersect(slope: float, point: tuple) -> float:
-        """
-        Gets the y intersect of a line, the equation is y = mx + b,
-        To get b: it is: b = y - mx
-        :param slope: slope of the line
-        :param point: (x, y) coordinate
-        :return: b, the y intercept
-        """
-        mx = point[0] * slope
-        lhs = point[1] - mx
-        return lhs
-
-    def get_common_point(m1: float, m2: float, b1: float, b2: float) -> tuple or None:
-        """
-        Returns the point of intersection given two lines
-        :param m1: slope of line 1
-        :param m2: slope of line 2
-        :param b1: y intersect of line 1
-        :param b2: y intersect of line 2
-        :return: The intersected point
-        """
-        b_diff = b2 - b1
-        m_diff = m2 - m1
-
-        x = b_diff / -m_diff
-        y_1 = m1 * x + b1
-        y_2 = m2 * x + b2
-
-        return int(x), int(y_1)
-
-    m_1 = get_slope(line_1)
-    m_2 = get_slope(line_2)
-
-    b_1 = get_y_intersect(m_1, line_1[1])
-    b_2 = get_y_intersect(m_2, line_2[1])
-
-    common_point = get_common_point(m_1, m_2, b_1, b_2)
-    return common_point
 
 
 def video_process():
