@@ -1,6 +1,11 @@
+from __future__ import print_function
 import cv2
 from camera import VideoReader
 from image_processor import ImageProcessor
+from imutils.video import WebcamVideoStream
+from imutils.video import FPS
+import argparse
+import imutils
 
 
 def void_delegate(value: float):
@@ -28,7 +33,7 @@ def calibrate_canny(video_path):
         cv2.createTrackbar(threshold2_name, window_name, image_processor.threshold_2, 2000, void_delegate)
         cv2.createTrackbar(aperture_name, window_name, 3, 10, void_delegate)
 
-        edged_image = image_processor.edge_detect(image)
+        # edged_image = image_processor.edge_detect(image)
         while True:
             cv2.imshow(window_name, edged_image)
 
@@ -43,3 +48,52 @@ def calibrate_canny(video_path):
             if key == 27:
                 break
         cv2.destroyAllWindows()
+
+
+def main_multi_threaded():
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument("-n", "--num-frames", type=int, default=1000)
+    arg_parser.add_argument("-d", "--display", type=int, default=-1)
+    args = vars(arg_parser.parse_args())
+
+    camera_stream = WebcamVideoStream(src=0).start()
+    fps = FPS().start()
+
+    while fps._numFrames < args["num_frames"]:
+        frame = camera_stream.read()
+        frame = imutils.resize(frame, width=400)
+
+        if args["display"] > 0:
+            cv2.imshow("", frame)
+            key = cv2.waitKey(1) & 0xFF
+
+        fps.update()
+
+    cv2.destroyAllWindows()
+    camera_stream.stop()
+    print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
+    print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
+
+
+def main():
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument("-n", "--num-frames", type=int, default=1000)
+    arg_parser.add_argument("-d", "--display", type=int, default=-1)
+    args = vars(arg_parser.parse_args())
+
+    camera_stream = WebcamVideoStream(src=0).start()
+    fps = FPS().start()
+
+    while fps._numFrames < args["num_frames"]:
+        frame = camera_stream.read()
+        frame = imutils.resize(frame, width=400)
+
+        if args["display"] > 0:
+            cv2.imshow("", frame)
+            key = cv2.waitKey(1) & 0xFF
+
+        fps.update()
+
+
+if __name__ == "__main__":
+    main_multi_threaded()
