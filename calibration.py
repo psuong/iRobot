@@ -65,34 +65,19 @@ def main_multi_threaded():
 
         if args["display"] > 0:
             cv2.imshow("", frame)
-            key = cv2.waitKey(1) & 0xFF
+            cv2.waitKey(1) & 0xFF
 
         fps.update()
 
     cv2.destroyAllWindows()
     camera_stream.stop()
+    fps.stop()
     print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
     print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
 
 
 def main():
-    arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("-n", "--num-frames", type=int, default=1000)
-    arg_parser.add_argument("-d", "--display", type=int, default=-1)
-    args = vars(arg_parser.parse_args())
-
-    camera_stream = WebcamVideoStream(src=0).start()
-    fps = FPS().start()
-
-    while fps._numFrames < args["num_frames"]:
-        frame = camera_stream.read()
-        frame = imutils.resize(frame, width=400)
-
-        if args["display"] > 0:
-            cv2.imshow("", frame)
-            key = cv2.waitKey(1) & 0xFF
-
-        fps.update()
+    pass
 
 
 if __name__ == "__main__":

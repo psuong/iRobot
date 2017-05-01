@@ -1,9 +1,12 @@
 import os
+import cv2
+import imutils
+import math
 from image_processor import ImageProcessor, ESC_KEY
 from camera import VideoReader
-import cv2
 from lane_tracking.detect import LaneDetector
-import math
+from imutils.video import WebcamVideoStream
+from imutils.video import FPS
 
 try:
     from rover import RoverClient
