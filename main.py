@@ -46,6 +46,7 @@ def get_intersection(line_1: tuple, line_2: tuple) -> tuple:
     :param line_2: A pair of (x`, y`) coordinates defining a line
     :return: Coordinate defining the intersection
     """
+
     def get_slope(line: tuple) -> float:
         p1 = line[0]
         p2 = line[1]
@@ -94,6 +95,10 @@ def get_intersection(line_1: tuple, line_2: tuple) -> tuple:
     return common_point
 
 
+def distance_between_two_points(point_1: tuple, point_2: tuple):
+    return math.sqrt((point_2[0] - point_1[0]) ** 2 + (point_2[1] - point_1[1]) ** 2)
+
+
 def video_process():
     if os.environ.get('VIDEO_PATH') is not None:
         video = VideoReader(0)
@@ -134,6 +139,16 @@ def video_process():
                 r_p1 = (int(points[1][0]), points[1][1])
                 r_p2 = (int(points[1][2]), points[1][3])
 
+                # calculate distance
+                if distance_between_two_points(l_p1, r_p1) < 180:
+                    print('lines are too close')
+                    cv2.imshow("", image)
+                    key = cv2.waitKey(ESC_KEY)
+
+                    if ESC_KEY == 27:
+                        break
+                    continue
+                print(distance_between_two_points(l_p1, r_p1))
                 image_processor.update_lanes((l_p1[0], l_p1[1], l_p2[0], l_p2[1]), (r_p1[0], r_p1[1], r_p2[0], r_p2[1]))
 
                 cv2.line(image, l_p1, l_p2, (0, 255, 0), 2)
@@ -261,7 +276,6 @@ def video_process():
 
             if ESC_KEY == 27:
                 break
-
 
 
 if __name__ == "__main__":
