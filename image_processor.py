@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 import os
 
-
 ESC_KEY = 33
 
 
@@ -29,9 +28,9 @@ class ImageProcessor(object):
         self.threshold_2 = threshold_2 or 200
         self.aperture_size = 3
         self.points = {
-            "mid_line": ((), ()), # Represents a pair of points
-            "left_bound": (0, 0), # Left - a cartesian coordinate
-            "right_bound": (0, 0), # Right - a cartesian coordinate,
+            "mid_line": ((), ()),  # Represents a pair of points
+            "left_bound": (0, 0),  # Left - a cartesian coordinate
+            "right_bound": (0, 0),  # Right - a cartesian coordinate,
             "lane_1": ((0, 0), (0, 0)),
             "lane_2": ((0, 0), (0, 0))
         }
@@ -97,7 +96,7 @@ class ImageProcessor(object):
         return image
 
     def phough_transform(self, edged_image: np.ndarray, image: np.ndarray) -> np.ndarray:
-        lines = cv2.HoughLinesP(edged_image, 1, np.pi/180, 100, minLineLength=100, maxLineGap=10)
+        lines = cv2.HoughLinesP(edged_image, 1, np.pi / 180, 100, minLineLength=100, maxLineGap=10)
         if lines is None:
             return image
         for line in lines:
@@ -107,3 +106,24 @@ class ImageProcessor(object):
         # Draw horizontal lines
         return image
 
+    @staticmethod
+    def filter_colors(image: np.ndarray):
+        # https://pythonprogramming.net/color-filter-python-opencv-tutorial/
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV_FULL)
+        # hsv := hue sat value
+        lower_bound = np.array([0, 0, 0])
+        upper_bound = np.array([255, 20, 255])
+
+        mask = cv2.inRange(hsv, lower_bound, upper_bound)
+        return cv2.bitwise_and(image, image, mask=mask)
+
+
+if __name__ == '__main__':
+    img = cv2.imread('samples/images/tape_1.jpg')
+    img = cv2.resize(img, (640, 320))
+    i = ImageProcessor.filter_colors(img)
+    cv2.imshow("", img)
+    cv2.imshow("processed", i)
+    k = cv2.waitKey(0)
+    if k == 27:
+        cv2.destroyAllWindows()
