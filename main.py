@@ -145,7 +145,7 @@ def video_process():
                     cv2.imshow("", image)
                     key = cv2.waitKey(ESC_KEY)
 
-                    if ESC_KEY == 27:
+                    if key == 27:
                         break
                     continue
                 print(distance_between_two_points(l_p1, r_p1))
@@ -158,7 +158,7 @@ def video_process():
             cv2.imshow("", image)
             key = cv2.waitKey(ESC_KEY)
 
-            if ESC_KEY == 27:
+            if key == 27:
                 break
             continue
 
@@ -268,13 +268,13 @@ def video_process():
                 cv2.imshow("", image)
                 key = cv2.waitKey(ESC_KEY)
 
-                if ESC_KEY == 27:
+                if key == 27:
                     break
         except ZeroDivisionError:
             cv2.imshow("", image)
             key = cv2.waitKey(ESC_KEY)
 
-            if ESC_KEY == 27:
+            if key == 27:
                 break
 
 
