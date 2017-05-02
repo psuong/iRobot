@@ -3,10 +3,11 @@ import cv2
 import imutils
 import math
 from image_processor import ImageProcessor, ESC_KEY
-from camera import VideoReader
+from camera import VideoReader, VIDEO_DIR
 from lane_tracking.detect import LaneDetector
 from imutils.video import WebcamVideoStream
 from imutils.video import FPS
+from thread_manager import ThreadManager
 
 try:
     from rover import RoverClient
@@ -41,21 +42,21 @@ def video_process():
     if os.environ.get('VIDEO_PATH') is not None:
         video = WebcamVideoStream(src=0).start()
     else:
-        video = WebcamVideoStream(src=LIVE_STREAM).start()
-
-    fps = FPS().start()
+        # video = WebcamVideoStream(src=LIVE_STREAM).start()
+        video = WebcamVideoStream(src="{}{}".format(VIDEO_DIR, "/hough_transform_sample.mp4"))
 
     lane_detect = LaneDetector(50)
 
     while video.stream.isOpened():
         ret, frame = video.stream.read()
-        image = imutils.resize(frame, width=400)
 
         height = frame.shape[0]
         width = frame.shape[1]
 
-        image = image_processor.bilateral_blur(image)
-        points = lane_detect.detect(image)
+        image_processor.image = frame
+
+        ThreadManager.start_single_thread(funct=image_processor.bilateral_blur, args=(frame,))
+        points = lane_detect.detect(frame)
 
         if points is not None:
             if points[0] is not None and points[1] is not None:
@@ -66,7 +67,7 @@ def video_process():
 
                 image_processor.update_lanes((l_p1[0], l_p1[1], l_p2[0], l_p2[1]), (r_p1[0], r_p1[1], r_p2[0], r_p2[1]))
 
-                cv2.line(image, l_p1, l_p2, (0, 255, 0), 2)
+                cv2.line(frame, l_p1, l_p2, (0, 255, 0), 2)
                 cv2.line(image, r_p1, r_p2, (0, 255, 0), 2)
         else:
             print(points)
@@ -173,9 +174,9 @@ def video_process():
                                   thickness=2)
                 try:
                     cv2.imshow("", image)
-                    key = cv2.waitKey(ESC_KEY)
+                    key = cv2.waitKey(ESC_KEY) & 0XFF
 
-                    if ESC_KEY == 27:
+                    if key == 27:
                         break
                 except:
                     # Doesn't support imshow

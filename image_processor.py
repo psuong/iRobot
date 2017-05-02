@@ -35,6 +35,7 @@ class ImageProcessor(object):
             "lane_1": ((0, 0), (0, 0)),
             "lane_2": ((0, 0), (0, 0))
         }
+        self.image = None
 
     @staticmethod
     def bilateral_blur(image: np.ndarray) -> np.ndarray:
