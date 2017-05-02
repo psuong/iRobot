@@ -82,7 +82,7 @@ def main():
     arg_parser.add_argument("-d", "--display", type=int, default=-1)
     args = vars(arg_parser.parse_args())
 
-    camera_stream = cv2.VideoCapture(0)
+    camera_stream = VideoReader(0).open_video()
     fps = FPS().start()
 
     while fps._numFrames < args["num_frames"]:
@@ -90,7 +90,7 @@ def main():
 
         frame = imutils.resize(frame, width=400)
 
-        if args["display"]:
+        if args["display"] > 0:
             cv2.imshow("", frame)
             cv2.waitKey(1) & 0xFF
 
