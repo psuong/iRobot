@@ -39,22 +39,17 @@ def line_intersection(line1, line2):
 
 def video_process():
     if os.environ.get('VIDEO_PATH') is not None:
-        video = VideoReader(0)
+        video = WebcamVideoStream(src=0).start()
     else:
-        # video = VideoReader("{}{}".format(VIDEO_DIR, "home_grown.webm"))
-        video = VideoReader(LIVE_STREAM)
+        video = WebcamVideoStream(src=LIVE_STREAM).start()
 
-    capture = video.open_video()
+    fps = FPS().start()
 
     lane_detect = LaneDetector(50)
 
-    while capture.isOpened():
-        ret, frame = capture.read()
-
-        # filter colors for masking tape
-        frame = image_processor.filter_colors(frame)
-
-        image = frame
+    while video.stream.isOpened():
+        ret, frame = video.stream.read()
+        image = imutils.resize(frame, width=400)
 
         height = frame.shape[0]
         width = frame.shape[1]

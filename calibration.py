@@ -52,7 +52,7 @@ def calibrate_canny(video_path):
 
 def main_multi_threaded():
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("-n", "--num-frames", type=int, default=1000)
+    arg_parser.add_argument("-n", "--num-frames", type=int, default=100)
     arg_parser.add_argument("-d", "--display", type=int, default=-1)
     args = vars(arg_parser.parse_args())
 
@@ -77,8 +77,31 @@ def main_multi_threaded():
 
 
 def main():
-    pass
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument("-n", "--num-frames", type=int, default=100)
+    arg_parser.add_argument("-d", "--display", type=int, default=-1)
+    args = vars(arg_parser.parse_args())
+
+    camera_stream = cv2.VideoCapture(0)
+    fps = FPS().start()
+
+    while fps._numFrames < args["num_frames"]:
+        ret, frame = camera_stream.read()
+
+        frame = imutils.resize(frame, width=400)
+
+        if args["display"]:
+            cv2.imshow("", frame)
+            cv2.waitKey(1) & 0xFF
+
+        fps.update()
+
+    cv2.destroyAllWindows()
+    fps.stop()
+    print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
+    print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
 
 
 if __name__ == "__main__":
+    main()
     main_multi_threaded()
