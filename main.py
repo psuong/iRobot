@@ -18,7 +18,7 @@ try:
 except:
     rover_status = False
 
-LIVE_STREAM = "http://172.16.12.47:8080/video"
+LIVE_STREAM = "http://192.168.1.118:8080/video"
 image_processor = ImageProcessor(threshold_1=1000, threshold_2=2000)
 
 
@@ -46,7 +46,6 @@ def get_intersection(line_1: tuple, line_2: tuple) -> tuple:
     :param line_2: A pair of (x`, y`) coordinates defining a line
     :return: Coordinate defining the intersection
     """
-
     def get_slope(line: tuple) -> float:
         p1 = line[0]
         p2 = line[1]
@@ -116,6 +115,10 @@ def video_process():
         # else:
         #     i += 1
         ret, frame = capture.read()
+
+        # filter colors for masking tape
+        frame = image_processor.filter_colors(frame)
+
         image = frame
         if frame is None:
             continue
@@ -258,6 +261,7 @@ def video_process():
 
             if ESC_KEY == 27:
                 break
+
 
 
 if __name__ == "__main__":
