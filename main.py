@@ -43,8 +43,8 @@ def video_process():
     if os.environ.get('VIDEO_PATH') is not None:
         video = WebcamVideoStream(src=0).start()
     else:
-        video = WebcamVideoStream(src=1).start()
-        # video = WebcamVideoStream(src="{}{}".format(VIDEO_DIR, "/home_grown.webm"))
+        # video = WebcamVideoStream(src=1).start()
+        video = WebcamVideoStream(src="{}{}".format(VIDEO_DIR, "/hough_transform_sample.mp4"))
 
     thread_manager = ThreadManager()
     lane_detect = LaneDetector(50)
@@ -59,7 +59,7 @@ def video_process():
             # thread_manager.start_single_thread(funct=image_processor.bilateral_blur, args=(frame, thread_manager.queue))
             # image = thread_manager.peek()
             # image = ImageProcessor.filter_colors(frame)
-            image = frame
+            image = cv2.blur(frame, (10, 10))
             points = lane_detect.detect(image)
 
             if points is not None:
