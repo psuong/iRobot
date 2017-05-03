@@ -191,9 +191,6 @@ def video_process():
         else:
             video.stream.release()
 
-            if key == 27:
-                break
-
 
 if __name__ == "__main__":
     video_process()
