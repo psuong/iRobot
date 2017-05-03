@@ -41,16 +41,16 @@ def line_intersection(line1, line2):
 
 def video_process():
     if os.environ.get('VIDEO_PATH') is not None:
-        video = WebcamVideoStream(src=0).start()
+        camera_stream = WebcamVideoStream(src=0).start()
     else:
-        # video = WebcamVideoStream(src=1).start()
-        video = WebcamVideoStream(src="{}{}".format(VIDEO_DIR, "/hough_transform_sample.mp4"))
+        camera_stream = WebcamVideoStream(src=1).start()
+        # camera_stream = WebcamVideoStream(src="{}{}".format(VIDEO_DIR, "/hough_transform_sample.mp4"))
 
     thread_manager = ThreadManager()
     lane_detect = LaneDetector(50)
 
-    while video.stream.isOpened():
-        ret, frame = video.stream.read()
+    while camera_stream.stream.isOpened():
+        frame = camera_stream.read()
 
         if frame is not None:
             height = frame.shape[0]
@@ -60,6 +60,7 @@ def video_process():
             # image = thread_manager.peek()
             # image = ImageProcessor.filter_colors(frame)
             image = cv2.blur(frame, (10, 10))
+            image = frame
             points = lane_detect.detect(image)
 
             if points is not None:
@@ -84,12 +85,6 @@ def video_process():
 
             try:
                 if points[0] is not None and points[1] is not None:
-                    """
-                    vp = ransac_vanishing_point.ransac_vanishing_point_detection(
-                        [[points[0][0], points[0][1], points[0][2], points[0][3]],
-                         [points[1][0], points[1][1], points[1][2], points[1][3]]])
-                    """
-
                     line_1 = ((points[0][0], points[0][1]), (points[0][2], points[0][3]))
                     line_2 = ((points[1][0], points[1][1]), (points[1][2], points[1][3]))
 
@@ -189,8 +184,19 @@ def video_process():
             except ZeroDivisionError:
                 pass
         else:
-            video.stream.release()
+            camera_stream.stream.release()
+
+
+def preview():
+    camera_stream = WebcamVideoStream(src=1).start()
+
+    while camera_stream.stream.isOpened():
+        frame = camera_stream.read()
+
+        cv2.imshow("", frame)
+        cv2.waitKey(1) & 0xFF
 
 
 if __name__ == "__main__":
     video_process()
+    # preview()
