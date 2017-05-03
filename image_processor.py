@@ -38,13 +38,16 @@ class ImageProcessor(object):
         self.image = None
 
     @staticmethod
-    def bilateral_blur(image: np.ndarray) -> np.ndarray:
+    def bilateral_blur(image: np.ndarray, queue=None) -> np.ndarray:
         """
         Performs a bilateral blue to reduce noise
         :param image: Image to perform the blur on
+        :param queue: The queue to store the image into
         :return: The blurred image
         """
         blurred_image = cv2.bilateralFilter(image, 20, 100, 100)
+        if queue is not None:
+            queue.put(blurred_image)
         return blurred_image
 
     def find_points(self, width, height) -> None:
