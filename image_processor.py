@@ -89,3 +89,25 @@ class ImageProcessor(object):
         """
         cv2.line(image, self.points["mid_line"][0], self.points["mid_line"][1], (255, 0, 0), 2)
         return image
+
+    @staticmethod
+    def filter_colors(image: np.ndarray):
+        # https://pythonprogramming.net/color-filter-python-opencv-tutorial/
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV_FULL)
+        # hsv := hue sat value
+        lower_bound = np.array([0, 0, 0])
+        upper_bound = np.array([255, 20, 255])
+
+        mask = cv2.inRange(hsv, lower_bound, upper_bound)
+        return cv2.bitwise_and(image, image, mask=mask)
+
+
+if __name__ == '__main__':
+    img = cv2.imread('samples/images/tape_1.jpg')
+    img = cv2.resize(img, (640, 320))
+    i = ImageProcessor.filter_colors(img)
+    cv2.imshow("", img)
+    cv2.imshow("processed", i)
+    k = cv2.waitKey(0)
+    if k == 27:
+        cv2.destroyAllWindows()

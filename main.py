@@ -43,7 +43,7 @@ def video_process():
         video = WebcamVideoStream(src=0).start()
     else:
         # video = WebcamVideoStream(src=LIVE_STREAM).start()
-        video = WebcamVideoStream(src="{}{}".format(VIDEO_DIR, "/hough_transform_sample.mp4"))
+        video = WebcamVideoStream(src="{}{}".format(VIDEO_DIR, "/home_grown.webm"))
 
     thread_manager = ThreadManager()
     lane_detect = LaneDetector(50)
@@ -56,6 +56,7 @@ def video_process():
 
         thread_manager.start_single_thread(funct=image_processor.bilateral_blur, args=(frame, thread_manager.queue))
         image = thread_manager.peek()
+        # image = ImageProcessor.filter_colors(frame)
         points = lane_detect.detect(image)
 
         if points is not None:
@@ -186,7 +187,4 @@ def video_process():
 
 
 if __name__ == "__main__":
-    # main()
     video_process()
-    # calibrate_canny("{}{}".format(VIDEO_DIR, "home_grown.webm"))
-    # image_process()
