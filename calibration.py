@@ -6,6 +6,7 @@ from imutils.video import WebcamVideoStream
 from imutils.video import FPS
 import argparse
 import imutils
+import numpy as np
 
 
 def void_delegate(value: float):
@@ -48,6 +49,56 @@ def calibrate_canny(video_path):
             if key == 27:
                 break
         cv2.destroyAllWindows()
+
+
+def calibrate_hsv():
+    hue1 = 0
+    saturation1 = 0
+    value1 = 0
+    hue2 = 255
+    saturation2 = 20
+    value2 = 255
+
+    video_reader = VideoReader(1)
+    video_reader.open_video()
+
+    # generator = video_reader.read_video()
+
+    while video_reader.video.isOpened():
+        ret, image = video_reader.video.read()
+
+        cached_image = image
+
+        cv2.namedWindow("", cv2.WINDOW_NORMAL)
+
+        cv2.createTrackbar("HUE 1", "", hue1, 255, void_delegate)
+        cv2.createTrackbar("SAT 1", "", saturation1, 255, void_delegate)
+        cv2.createTrackbar("VAL 1", "", value1, 255, void_delegate)
+
+        cv2.createTrackbar("HUE 2", "", hue2, 255, void_delegate)
+        cv2.createTrackbar("SAT 2", "", saturation2, 255, void_delegate)
+        cv2.createTrackbar("VAL 2", "", value2, 255, void_delegate)
+
+        while True:
+            hue1 = cv2.getTrackbarPos("HUE 1", "")
+            saturation1 = cv2.getTrackbarPos("SAT 1", "")
+            value1 = cv2.getTrackbarPos("VAL 1", "")
+
+            hsv1 = np.array([hue1, saturation1, value1])
+
+            hue2 = cv2.getTrackbarPos("HUE 2", "")
+            saturation2 = cv2.getTrackbarPos("SAT 2", "")
+            value2 = cv2.getTrackbarPos("VAL 2", "")
+
+            hsv2 = np.array([hue2, saturation2, value2])
+
+            image = ImageProcessor.filter_colors(cached_image, hsv1, hsv2)
+            cv2.imshow("", image)
+            key = cv2.waitKey(33)
+            if key == 27:
+                break
+
+    cv2.destroyAllWindows()
 
 
 def main_multi_threaded():
@@ -103,5 +154,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-    main_multi_threaded()
+    # main()
+    # main_multi_threaded()
+    calibrate_hsv()

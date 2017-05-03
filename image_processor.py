@@ -91,12 +91,15 @@ class ImageProcessor(object):
         return image
 
     @staticmethod
-    def filter_colors(image: np.ndarray):
+    def filter_colors(image: np.ndarray, hsv1, hsv2):
         # https://pythonprogramming.net/color-filter-python-opencv-tutorial/
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV_FULL)
         # hsv := hue sat value
-        lower_bound = np.array([0, 0, 0])
-        upper_bound = np.array([255, 20, 255])
+        # lower_bound = np.array([0, 0, 0])
+        # upper_bound = np.array([255, 20, 255])
+
+        lower_bound = hsv1
+        upper_bound = hsv2
 
         mask = cv2.inRange(hsv, lower_bound, upper_bound)
         return cv2.bitwise_and(image, image, mask=mask)
