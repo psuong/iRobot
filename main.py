@@ -6,6 +6,8 @@ from camera import VideoReader, VIDEO_DIR
 from lane_tracking.detect import LaneDetector
 from imutils.video import WebcamVideoStream
 from thread_manager import ThreadManager
+from remote_control import client
+from remote_control.client import Keys
 
 
 try:
@@ -164,6 +166,7 @@ def video_process():
                             cv2.putText(frame, "Straight", (0, 20),
                                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255))
                             print("STRAIGHT")
+                            client.handle_key(Keys.KEY_UP)
                             if rover_status:
                                 rover.forward()
 
@@ -187,6 +190,9 @@ def video_process():
                 pass
         else:
             video.stream.release()
+
+            if key == 27:
+                break
 
 
 if __name__ == "__main__":
