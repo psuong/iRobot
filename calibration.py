@@ -1,7 +1,6 @@
 import cv2
 from calibration_data import HSVData
 from imutils.video import WebcamVideoStream, FPS
-from image_processor import ESC_KEY
 import argparse as ap
 
 
@@ -15,6 +14,7 @@ def calibrate_hsv(frames, src=0):
 
         hsv_data.image = frame
         hsv_data.define_hsv_range()
+        HSVData.serialize_hsv_data(hsv_data.lower_bound, hsv_data.upper_bound, "serialized_data/hsv_data.p")
 
     fps.stop()
     camera_stream.stop()

@@ -4,6 +4,10 @@ import numpy as np
 from image_processor import ImageProcessor
 
 
+LOWER_BOUND = "lower"
+UPPER_BOUND = "upper"
+
+
 def void_delegate(value):
     """
     Represents a void delegate that does absolutely nothing.
@@ -36,7 +40,6 @@ class HSVData(object):
         self.value_2 = self._max_range
         # Image data
         self.image = None
-
 
     def define_hsv_range(self):
         # Perform the manipulation on the cached image, keep the original image intact
@@ -73,3 +76,14 @@ class HSVData(object):
                 break
 
         cv2.destroyAllWindows()
+
+    @staticmethod
+    def serialize_hsv_data(lower_bound: np.ndarray, upper_bound: np.ndarray, path: str):
+        bounds = {
+            LOWER_BOUND: lower_bound,
+            UPPER_BOUND: upper_bound
+        }
+
+        output_file = open(path, "w+")
+        pickle.dump(bounds, output_file)
+        output_file.close()
