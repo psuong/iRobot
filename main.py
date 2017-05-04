@@ -79,6 +79,8 @@ def main(color_filter):
                 if vp:
                     # Draw the theoretical vp
                     cv2.circle(image, tuple(vp), 10, (0, 244, 255), thickness=4)
+
+                    warning_detection(height, width, image, vp, left_lane, right_lane)
             else:
                 print("Passed")
                 continue
@@ -87,6 +89,36 @@ def main(color_filter):
             key = cv2.waitKey(ESC_KEY) & 0xFF
             if key == 27:
                 break
+
+
+def warning_detection(width, height, image, vp, left_lane, right_lane):
+    half_width = int(width / 2)
+    half_height = int(height / 2)
+
+    bottom_left = (vp[0] - half_width, vp[1] + half_height)
+    bottom_right = (vp[0] + half_width, vp[1] + half_height)
+
+    cv2.rectangle(image,
+                  (vp[0] - half_width, vp[1]),
+                  (vp[0] + half_width, vp[1] + half_height),
+                  (0, 0, 255), thickness=2)
+
+    m = line_intersection((bottom_left, bottom_right), left_lane)
+    s = line_intersection((bottom_left, bottom_right), right_lane)
+    if m is not None and s is not None:
+        a_m = m[0]
+        b_m = m[1]
+        a_s = s[0]
+        b_s = s[1]
+
+        # Draw the left distance of the screen
+        cv2.line(image, tuple(m), bottom_left, (66, 244, 89), thickness=4)
+        # Draw the intersection
+        cv2.circle(image, tuple(m), radius=4, color=(66, 244, 89), thickness=5)
+        # Draw the right distance of the screen
+        cv2.line(image, tuple(s), bottom_right, (66, 244, 89), thickness=4)
+        # Draw the intersection
+        cv2.circle(image, tuple(s), radius=4, color=(66, 244, 89), thickness=5)
 
 
 if __name__ == "__main__":
