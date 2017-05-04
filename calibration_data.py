@@ -1,11 +1,13 @@
 import pickle
 import cv2
+import os
 import numpy as np
 from image_processor import ImageProcessor
 
 
 LOWER_BOUND = "lower"
 UPPER_BOUND = "upper"
+DATA_DIR = "serialized_data"
 
 
 def void_delegate(value):
@@ -83,7 +85,7 @@ class HSVData(object):
             LOWER_BOUND: lower_bound,
             UPPER_BOUND: upper_bound
         }
-
-        output_file = open(path, "w+")
-        pickle.dump(bounds, output_file)
-        output_file.close()
+        data_path = os.path.join(DATA_DIR, path)
+        output = open(data_path, "wb")
+        pickle.dump(bounds, output)
+        output.close()
