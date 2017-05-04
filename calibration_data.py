@@ -67,7 +67,7 @@ class HSVData(object):
 
             cv2.imshow(window_name, cached_image)
 
-            key = cv2.waitKey(33) & 0xFF
+            key = cv2.waitKey(33)
 
             if key == 27:
                 break
