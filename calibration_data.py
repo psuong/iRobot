@@ -4,7 +4,6 @@ import os
 import numpy as np
 from image_processor import ImageProcessor
 
-
 LOWER_BOUND = "lower"
 UPPER_BOUND = "upper"
 DATA_DIR = "serialized_data"
@@ -17,6 +16,18 @@ def void_delegate(value):
     :return: None
     """
     return None
+
+
+def load_serialize_data(path: str):
+    """
+    Loads the serialized data from a pickle dump
+    :param path: Path to the file
+    :return: Loaded data
+    """
+    file = open(path, "rb")
+    serialized_data = pickle.load(file)
+    file.close()
+    return serialized_data
 
 
 class HSVData(object):
