@@ -60,7 +60,6 @@ def video_process():
             # image = thread_manager.peek()
             # image = ImageProcessor.filter_colors(frame)
             image = cv2.blur(frame, (10, 10))
-            image = frame
             points = lane_detect.detect(image)
 
             if points is not None:
