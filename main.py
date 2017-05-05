@@ -2,10 +2,8 @@ import os
 import cv2
 import math
 from image_processor import ImageProcessor, ESC_KEY
-from camera import VideoReader, VIDEO_DIR
 from lane_tracking.detect import LaneDetector
 from imutils.video import WebcamVideoStream
-from thread_manager import ThreadManager
 from remote_control import client
 from remote_control.client import Keys
 from calibration_data import HSVData, UPPER_BOUND, LOWER_BOUND, DATA_DIR, load_serialize_data
@@ -161,10 +159,16 @@ def steer(d_m, d_s, threshold):
     """
     if d_m > threshold:
         print("Right")
+        if rover_status:
+            rover.forward_right()
     elif d_s > threshold:
         print("Left")
+        if rover_status:
+            rover.forward_left()
     else:
         print("Straight")
+        if rover_status:
+            rover.forward()
 
 
 if __name__ == "__main__":
