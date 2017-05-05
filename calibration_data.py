@@ -100,3 +100,29 @@ class HSVData(object):
         output = open(data_path, "wb")
         pickle.dump(bounds, output)
         output.close()
+
+
+class BlurData(object):
+    def __init__(self):
+        self.kernel_size = 5
+        self.point = 5
+        self.image = None
+        self._max_range = 100
+
+    def define_blur_strength(self):
+        window_name = "Blur"
+        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+        cv2.createTrackbar("Kernel Size", window_name, self.kernel_size, self._max_range, void_delegate)
+        cv2.createTrackbar("Point Size", window_name, self.point, self._max_range, void_delegate)
+
+        while True:
+            self.kernel_size = cv2.getTrackbarPos("Kernel Size", window_name)
+            self.point = cv2.getTrackbarPos("Point Size", window_name)
+
+            cached_image = cv2.blur(self.image, (self.kernel_size, self.point))
+            cv2.imshow(window_name, cached_image)
+
+            key = cv2.waitKey(33)
+            if key == 27:
+                break
+
