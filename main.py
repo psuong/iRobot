@@ -9,7 +9,7 @@ from thread_manager import ThreadManager
 from remote_control import client
 from remote_control.client import Keys
 from calibration_data import HSVData, UPPER_BOUND, LOWER_BOUND, DATA_DIR, load_serialize_data
-from utility import line_intersection
+from utility import line_intersection, distance
 from lane_tracking.track import LaneTracker
 
 
@@ -29,7 +29,7 @@ def main(color_filter):
     if os.environ.get('VIDEO_PATH') is not None:
         camera_stream = WebcamVideoStream(src=LIVE_STREAM).start()
     else:
-        camera_stream = WebcamVideoStream(src=1).start()
+        camera_stream = WebcamVideoStream(src=os.path.join(VIDEO_DIR, "hough_transform_sample.mp4")).start()
 
     window_name = "Main"
 
@@ -43,7 +43,8 @@ def main(color_filter):
             height = frame.shape[0]
             width = frame.shape[1]
 
-            image = ImageProcessor.filter_colors(frame, color_filter[LOWER_BOUND], color_filter[UPPER_BOUND])
+            # image = ImageProcessor.filter_colors(frame, color_filter[LOWER_BOUND], color_filter[UPPER_BOUND])
+            image = frame
             points = lane_detect.detect(image)
 
             if points is not None and points[0] is not None and points[1] is not None:
@@ -53,10 +54,10 @@ def main(color_filter):
                 r_p2 = (int(points[1][2]), int(points[1][3]))
 
                 # TODO: Store the coordinates of the lane
-
+                # Draw the lanes
                 cv2.line(image, l_p1, l_p2, (0, 255, 0), 2)
                 cv2.line(image, r_p1, r_p2, (0, 255, 0), 2)
-
+                # Create the lanes
                 left_lane = (l_p1, l_p2)
                 right_lane = (r_p1, r_p2)
 
@@ -66,7 +67,9 @@ def main(color_filter):
                     # Draw the theoretical vp
                     cv2.circle(image, tuple(vp), 10, (0, 244, 255), thickness=4)
 
-                    warning_detection(height, width, image, vp, left_lane, right_lane)
+                    dm_ds = warning_detection(height, width, image, vp, left_lane, right_lane)
+
+                    steer(dm_ds[0], dm_ds[1], width / 4)
             else:
                 print("Passed")
                 continue
@@ -78,6 +81,17 @@ def main(color_filter):
 
 
 def warning_detection(width, height, image, vp, left_lane, right_lane):
+    """
+    Returns the distance between the edges of the warning box and the points of intersection
+    with the lanes.
+    :param width: Image's width
+    :param height: Image's height
+    :param image: The actual image
+    :param vp: The coordinate representing the vanishing point
+    :param left_lane: The left lane
+    :param right_lane: The right lane
+    :return: tuple (dm, ds)
+    """
     half_width = int(width / 2)
     half_height = int(height / 2)
 
@@ -88,6 +102,10 @@ def warning_detection(width, height, image, vp, left_lane, right_lane):
                   (vp[0] - half_width, vp[1]),
                   (vp[0] + half_width, vp[1] + half_height),
                   (0, 0, 255), thickness=2)
+
+    warning_y = (int(vp[0] + half_width / 2), int(vp[1] + half_height))
+
+    cv2.rectangle(image, (vp[0] - int(width / 4), vp[1]), warning_y, (244, 64, 130), thickness=2)
 
     m = line_intersection((bottom_left, bottom_right), left_lane)
     s = line_intersection((bottom_left, bottom_right), right_lane)
@@ -105,6 +123,29 @@ def warning_detection(width, height, image, vp, left_lane, right_lane):
         cv2.line(image, tuple(s), bottom_right, (66, 244, 89), thickness=4)
         # Draw the intersection
         cv2.circle(image, tuple(s), radius=4, color=(66, 244, 89), thickness=5)
+
+        d_m = distance((a_m, b_m), bottom_left)
+        d_s = distance((a_s, b_s), bottom_right)
+
+        return d_m, d_s
+
+
+def steer(d_m, d_s, threshold):
+    """
+    Checks the distance between the left and the right bounds. If d_m is larger than the threshold,
+    force the rover to turn RIGHT. If d_s is larger than the threshold, force the rover to turn LEFT.
+    The threshold is typically the image's width / 4.
+    :param d_m: distance from the left bound
+    :param d_s: distance from the right bound
+    :param threshold: Value determining if the car should steer or drive forward
+    :return: 
+    """
+    if d_m > threshold:
+        print("Left")
+    elif d_s > threshold:
+        print("Right")
+    else:
+        print("Straight")
 
 
 if __name__ == "__main__":
