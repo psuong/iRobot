@@ -26,7 +26,7 @@ LIVE_STREAM = "http://192.168.1.118:8080/video"
 image_processor = ImageProcessor(threshold_1=1000, threshold_2=2000)
 
 
-def main(color_filter):
+def main(blur, color_filter):
     if os.environ.get('VIDEO_PATH') is not None:
         camera_stream = WebcamVideoStream(src=LIVE_STREAM).start()
     else:
@@ -50,6 +50,7 @@ def main(color_filter):
             height = frame.shape[0]
             width = frame.shape[1]
 
+            # image = cv2.blur(frame, (blur.kernel_size, blur.point))
             image = ImageProcessor.filter_colors(frame, color_filter[LOWER_BOUND], color_filter[UPPER_BOUND])
             predicted_points = lane_tracker.predict(dt)
             points = lane_detect.detect(image)
@@ -175,4 +176,7 @@ if __name__ == "__main__":
     color_filter_file = os.path.join(DATA_DIR, "macaulay_table.p")
     color_filter_data = load_serialize_data(color_filter_file)
 
-    main(color_filter_data)
+    blur_filter_file = os.path.join(DATA_DIR, "macaulay_table_blur.p")
+    blur_filter = load_serialize_data(blur_filter_file)
+
+    main(blur_filter, color_filter_data)

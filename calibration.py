@@ -43,8 +43,8 @@ def main():
     arg_parser.add_argument("-n", "--num-frames", type=int, default=100, help="# of frames to read")
     arg_parser.add_argument("-p", "--path", type=str, help="File to write the data to")
     args = vars(arg_parser.parse_args())
-    calibrate_hsv(args["num_frames"], args["path"], args["source"])
-    # calibrate_blur(args["num_frames"], args["path"], args["source"])
+    # calibrate_hsv(args["num_frames"], args["path"], args["source"])
+    calibrate_blur(args["num_frames"], args["path"], args["source"])
 
 
 if __name__ == "__main__":
