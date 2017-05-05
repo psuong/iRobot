@@ -68,10 +68,10 @@ def main(blur, color_filter):
             if points is not None and points[0] is not None and points[1] is not None:
                 lane_tracker.update(points)
 
-                r_p1 = (int(points[0][0]), int(points[0][1]))
-                r_p2 = (int(points[0][2]), int(points[0][3]))
-                l_p1 = (int(points[1][0]), int(points[1][1]))
-                l_p2 = (int(points[1][2]), int(points[1][3]))
+                l_p1 = (int(points[0][0]), int(points[0][1]))
+                l_p2 = (int(points[0][2]), int(points[0][3]))
+                r_p1 = (int(points[1][0]), int(points[1][1]))
+                r_p2 = (int(points[1][2]), int(points[1][3]))
 
                 # TODO: Store the coordinates of the lane
                 # Draw the lanes
