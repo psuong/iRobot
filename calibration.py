@@ -29,6 +29,7 @@ def calibrate_blur(frames, path, src=0):
         frame = camera_stream.read()
         blur_data.image = frame
         blur_data.define_blur_strength()
+        BlurData.serialize_blur_data(blur_data, path)
 
     fps.stop()
     camera_stream.stop()

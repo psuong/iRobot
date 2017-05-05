@@ -119,6 +119,11 @@ class BlurData(object):
             self.kernel_size = cv2.getTrackbarPos("Kernel Size", window_name)
             self.point = cv2.getTrackbarPos("Point Size", window_name)
 
+            if self.kernel_size < 2:
+                self.kernel_size = 2
+            if self.point < 2:
+                self.point = 2
+
             cached_image = cv2.blur(self.image, (self.kernel_size, self.point))
             cv2.imshow(window_name, cached_image)
 
@@ -126,3 +131,9 @@ class BlurData(object):
             if key == 27:
                 break
 
+    @staticmethod
+    def serialize_blur_data(blur_data, path):
+        data_path = os.path.join(DATA_DIR, path)
+        output = open(data_path, "wb")
+        pickle.dump(blur_data, output)
+        output.close()
