@@ -35,9 +35,15 @@ def main(color_filter):
     window_name = "Main"
 
     lane_detect = LaneDetector(50)
-    # lane_tracker = LaneTracker()
+    lane_tracker = LaneTracker(2, 0.1, 500)
+
+    ticks = 0
 
     while camera_stream.stream.isOpened():
+        pre_ticks = ticks
+        ticks = cv2.getTickCount()
+        dt = (ticks - pre_ticks) / cv2.getTickFrequency()
+
         frame = camera_stream.read()
 
         if frame is not None:
@@ -45,9 +51,22 @@ def main(color_filter):
             width = frame.shape[1]
 
             image = ImageProcessor.filter_colors(frame, color_filter[LOWER_BOUND], color_filter[UPPER_BOUND])
+            predicted_points = lane_tracker.predict(dt)
             points = lane_detect.detect(image)
 
+            if predicted_points is not None:
+                cv2.line(image,
+                         (predicted_points[0][0], predicted_points[0][1]),
+                         (predicted_points[0][2], predicted_points[0][3]),
+                         (255, 0, 0), 4)
+                cv2.line(image,
+                         (predicted_points[1][0], predicted_points[1][1]),
+                         (predicted_points[1][2], predicted_points[1][3]),
+                         (255, 0, 0), 4)
+
             if points is not None and points[0] is not None and points[1] is not None:
+                lane_tracker.update(points)
+
                 r_p1 = (int(points[0][0]), int(points[0][1]))
                 r_p2 = (int(points[0][2]), int(points[0][3]))
                 l_p1 = (int(points[1][0]), int(points[1][1]))
@@ -126,7 +145,6 @@ def warning_detection(width, height, image, vp, left_lane, right_lane):
 
         d_m = distance((a_m, b_m), bottom_left)
         d_s = distance((a_s, b_s), bottom_right)
-        # print(d_m, d_s)
         return d_m, d_s
 
 
@@ -141,9 +159,9 @@ def steer(d_m, d_s, threshold):
     :return: None
     """
     if d_m > threshold:
-        print("Left")
-    elif d_s > threshold:
         print("Right")
+    elif d_s > threshold:
+        print("Left")
     else:
         print("Straight")
 
@@ -154,7 +172,7 @@ if __name__ == "__main__":
                                                    "you can ignore the serialized_data directory")
     args = vars(ap.parse_args())
 
-    color_filter_file = os.path.join(DATA_DIR, args["path"])
+    color_filter_file = os.path.join(DATA_DIR, "macaulay_table.p")
     color_filter_data = load_serialize_data(color_filter_file)
 
     main(color_filter_data)
