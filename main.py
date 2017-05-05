@@ -180,6 +180,7 @@ if __name__ == "__main__":
     color_filter_file = os.path.join(DATA_DIR, "macaulay_table.p")
     color_filter_data = load_serialize_data(color_filter_file)
 
+    # The blur can be useless
     blur_filter_file = os.path.join(DATA_DIR, "macaulay_table_blur.p")
     blur_filter = load_serialize_data(blur_filter_file)
 
