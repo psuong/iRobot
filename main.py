@@ -9,6 +9,8 @@ from thread_manager import ThreadManager
 from remote_control import client
 from remote_control.client import Keys
 from calibration_data import HSVData, UPPER_BOUND, LOWER_BOUND, DATA_DIR, load_serialize_data
+from utility import line_intersection
+from lane_tracking.track import LaneTracker
 
 
 try:
@@ -23,23 +25,6 @@ LIVE_STREAM = "http://192.168.1.118:8080/video"
 image_processor = ImageProcessor(threshold_1=1000, threshold_2=2000)
 
 
-def line_intersection(line1, line2):
-    xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
-    ydiff = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1])
-
-    def det(a, b):
-        return a[0] * b[1] - a[1] * b[0]
-
-    div = det(xdiff, ydiff)
-    if div == 0:
-        return None
-
-    d = (det(*line1), det(*line2))
-    x = det(d, xdiff) / div
-    y = det(d, ydiff) / div
-    return [int(x), int(y)]
-
-
 def main(color_filter):
     if os.environ.get('VIDEO_PATH') is not None:
         camera_stream = WebcamVideoStream(src=LIVE_STREAM).start()
@@ -49,6 +34,7 @@ def main(color_filter):
     window_name = "Main"
 
     lane_detect = LaneDetector(50)
+    # lane_tracker = LaneTracker()
 
     while camera_stream.stream.isOpened():
         frame = camera_stream.read()
@@ -122,7 +108,7 @@ def warning_detection(width, height, image, vp, left_lane, right_lane):
 
 
 if __name__ == "__main__":
-    color_filter_file = os.path.join(DATA_DIR, "white_table.p")
+    color_filter_file = os.path.join(DATA_DIR, "grey_table.p")
     color_filter_data = load_serialize_data(color_filter_file)
 
     main(color_filter_data)
