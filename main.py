@@ -11,6 +11,7 @@ from remote_control.client import Keys
 from calibration_data import HSVData, UPPER_BOUND, LOWER_BOUND, DATA_DIR, load_serialize_data
 from utility import line_intersection, distance
 from lane_tracking.track import LaneTracker
+import argparse
 
 
 try:
@@ -29,7 +30,7 @@ def main(color_filter):
     if os.environ.get('VIDEO_PATH') is not None:
         camera_stream = WebcamVideoStream(src=LIVE_STREAM).start()
     else:
-        camera_stream = WebcamVideoStream(src=os.path.join(VIDEO_DIR, "hough_transform_sample.mp4")).start()
+        camera_stream = WebcamVideoStream(src=1).start()
 
     window_name = "Main"
 
@@ -43,15 +44,14 @@ def main(color_filter):
             height = frame.shape[0]
             width = frame.shape[1]
 
-            # image = ImageProcessor.filter_colors(frame, color_filter[LOWER_BOUND], color_filter[UPPER_BOUND])
-            image = frame
+            image = ImageProcessor.filter_colors(frame, color_filter[LOWER_BOUND], color_filter[UPPER_BOUND])
             points = lane_detect.detect(image)
 
             if points is not None and points[0] is not None and points[1] is not None:
-                l_p1 = (int(points[0][0]), int(points[0][1]))
-                l_p2 = (int(points[0][2]), int(points[0][3]))
-                r_p1 = (int(points[1][0]), int(points[1][1]))
-                r_p2 = (int(points[1][2]), int(points[1][3]))
+                r_p1 = (int(points[0][0]), int(points[0][1]))
+                r_p2 = (int(points[0][2]), int(points[0][3]))
+                l_p1 = (int(points[1][0]), int(points[1][1]))
+                l_p2 = (int(points[1][2]), int(points[1][3]))
 
                 # TODO: Store the coordinates of the lane
                 # Draw the lanes
@@ -116,17 +116,17 @@ def warning_detection(width, height, image, vp, left_lane, right_lane):
         b_s = s[1]
 
         # Draw the left distance of the screen
-        cv2.line(image, tuple(m), bottom_left, (66, 244, 89), thickness=4)
+        cv2.line(image, tuple(m), bottom_left, color=(66, 199, 244), thickness=4)
         # Draw the intersection
-        cv2.circle(image, tuple(m), radius=4, color=(66, 244, 89), thickness=5)
+        cv2.circle(image, tuple(m), radius=4, color=(66, 199, 89), thickness=5)
         # Draw the right distance of the screen
-        cv2.line(image, tuple(s), bottom_right, (66, 244, 89), thickness=4)
+        cv2.line(image, tuple(s), bottom_right, color=(66, 199, 244), thickness=4)
         # Draw the intersection
-        cv2.circle(image, tuple(s), radius=4, color=(66, 244, 89), thickness=5)
+        cv2.circle(image, tuple(s), radius=4, color=(66, 199, 89), thickness=5)
 
         d_m = distance((a_m, b_m), bottom_left)
         d_s = distance((a_s, b_s), bottom_right)
-
+        # print(d_m, d_s)
         return d_m, d_s
 
 
@@ -149,7 +149,12 @@ def steer(d_m, d_s, threshold):
 
 
 if __name__ == "__main__":
-    color_filter_file = os.path.join(DATA_DIR, "grey_table.p")
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-p", "--path", type=str, help="Path of the serialized data for the bounds"
+                                                   "you can ignore the serialized_data directory")
+    args = vars(ap.parse_args())
+
+    color_filter_file = os.path.join(DATA_DIR, args["path"])
     color_filter_data = load_serialize_data(color_filter_file)
 
     main(color_filter_data)
