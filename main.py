@@ -138,7 +138,7 @@ def steer(d_m, d_s, threshold):
     :param d_m: distance from the left bound
     :param d_s: distance from the right bound
     :param threshold: Value determining if the car should steer or drive forward
-    :return: 
+    :return: None
     """
     if d_m > threshold:
         print("Left")
