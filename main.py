@@ -177,7 +177,7 @@ if __name__ == "__main__":
                                                    "you can ignore the serialized_data directory")
     args = vars(ap.parse_args())
 
-    color_filter_file = os.path.join(DATA_DIR, "macaulay_table.p")
+    color_filter_file = os.path.join(DATA_DIR, "custom-road.p")
     color_filter_data = load_serialize_data(color_filter_file)
 
     # The blur can be useless

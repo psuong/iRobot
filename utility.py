@@ -26,6 +26,25 @@ def line_intersection(line1, line2):
     return [int(x), int(y)]
 
 
+def get_average_line(line1, line2):
+    """
+    Attempts to get the average line between the actual lane and the predicted lane
+    :param line1: four tuple representing the coordinates of a line
+    :param line2: four tuple representing the coordinates of a line
+    :return: The line between the two lines
+    """
+    line1_p1 = line1[0]
+    line1_p2 = line1[1]
+
+    line2_p1 = line2[0]
+    line2_p2 = line2[1]
+
+    average_p1 = int((line1_p1[0] + line2_p1[0]) / 2), int((line1_p1[1] + line2_p1[1]) / 2)
+    average_p2 = int((line1_p2[0] + line2_p2[0]) / 2), int((line2_p2[1] + line2_p2[1]) / 2)
+
+    return average_p1, average_p2
+
+
 def distance(start, end):
     """
     Computes the distance between 2 points on the image
