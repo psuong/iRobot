@@ -1,45 +1,51 @@
 import cv2
-from camera import VideoReader
-from image_processor import ImageProcessor
+from calibration_data import HSVData, BlurData
+from imutils.video import WebcamVideoStream, FPS
+import argparse as ap
 
 
-def void_delegate(value: float):
-    pass
+def calibrate_hsv(frames, path, src=0):
+    hsv_data = HSVData()
+    camera_stream = WebcamVideoStream(src=src).start()
+    fps = FPS().start()
+
+    while fps._numFrames < frames:
+        frame = camera_stream.read()
+        hsv_data.image = frame
+        hsv_data.define_hsv_range()
+        HSVData.serialize_hsv_data(hsv_data.lower_bound, hsv_data.upper_bound, path)
+
+    fps.stop()
+    camera_stream.stop()
+    cv2.destroyAllWindows()
 
 
-def calibrate_canny(video_path):
-    video_reader = VideoReader(video_path)
-    video_reader.open_video()
+def calibrate_blur(frames, path, src=0):
+    blur_data = BlurData()
+    camera_stream = WebcamVideoStream(src=src).start()
+    fps = FPS().start()
 
-    image_processor = ImageProcessor()
+    while fps._numFrames < frames:
+        frame = camera_stream.read()
+        blur_data.image = frame
+        blur_data.define_blur_strength()
+        BlurData.serialize_blur_data(blur_data, path)
 
-    generator = video_reader.read_video()
+    fps.stop()
+    camera_stream.stop()
+    cv2.destroyAllWindows()
 
-    for image, status in generator:
-        window_name = "Edged Image"
-        threshold1_name = "Threshold 1"
-        threshold2_name = "Threshold 2"
-        aperture_name = "Aperture Size"
 
-        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+def main():
+    arg_parser = ap.ArgumentParser()
+    arg_parser.add_argument("-s", "--source", type=int, default=0, help="Source of the camera stream,"
+                                                                        "by default it's the default webcam")
+    arg_parser.add_argument("-n", "--num-frames", type=int, default=100, help="# of frames to read")
+    arg_parser.add_argument("-p", "--path", type=str, help="File to write the data to")
+    args = vars(arg_parser.parse_args())
+    calibrate_hsv(args["num_frames"], args["path"], args["source"])
+    # calibrate_blur(args["num_frames"], args["path"], args["source"])
 
-        # Create the
-        cv2.createTrackbar(threshold1_name, window_name, image_processor.threshold_1, 1000, void_delegate)
-        cv2.createTrackbar(threshold2_name, window_name, image_processor.threshold_2, 2000, void_delegate)
-        cv2.createTrackbar(aperture_name, window_name, 3, 10, void_delegate)
 
-        edged_image = image_processor.edge_detect(image)
-        while True:
-            cv2.imshow(window_name, edged_image)
-
-            image_processor.threshold_1 = cv2.getTrackbarPos(threshold1_name, window_name)
-            image_processor.threshold_2 = cv2.getTrackbarPos(threshold2_name, window_name)
-            image_processor.aperture_size = cv2.getTrackbarPos(aperture_name, window_name)
-
-            edged_image = cv2.Canny(image, image_processor.threshold_1, image_processor.threshold_2,
-                                    apertureSize=image_processor.aperture_size)
-
-            key = cv2.waitKey(33)
-            if key == 27:
-                break
-        cv2.destroyAllWindows()
+if __name__ == "__main__":
+    main()
