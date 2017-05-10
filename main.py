@@ -1,6 +1,7 @@
 import os
 import cv2
 import math
+import random
 from image_processor import ImageProcessor, ESC_KEY
 from lane_tracking.detect import LaneDetector
 from imutils.video import WebcamVideoStream
@@ -10,6 +11,7 @@ from calibration_data import HSVData, UPPER_BOUND, LOWER_BOUND, DATA_DIR, load_s
 from utility import line_intersection, distance, get_average_line
 from lane_tracking.track import LaneTracker
 import argparse
+from datetime import datetime
 
 from remote_control import client, common
 
@@ -22,10 +24,13 @@ try:
 except:
     rover_status = False
 
-LIVE_STREAM = "http://192.168.43.99:8080/?action=stream"
+LIVE_STREAM = "http://192.168.43.164:8080/?action=stream"
 image_processor = ImageProcessor(threshold_1=1000, threshold_2=2000)
 SIZE_OF_Q = 10
 super_queue = {common.Keys.KEY_UP: 0, common.Keys.KEY_LEFT: 0, common.Keys.KEY_RIGHT: 0, common.Keys.KEY_SPACE: 0}
+SIZE_OF_HALT_Q = 10
+HALT_QUEUE = 0
+_time_lock = False
 
 
 def main(blur, color_filter):
@@ -41,7 +46,8 @@ def main(blur, color_filter):
 
     ticks = 0
     queue_iter = 0
-    
+    time_stamp = None
+
     while camera_stream.stream.isOpened():
         pre_ticks = ticks
         ticks = cv2.getTickCount()
@@ -94,14 +100,33 @@ def main(blur, color_filter):
 
                     queue_iter += 1
                     steer(dm_ds[0], dm_ds[1], width / 4, queue_iter)
-                   
+
                     cv2.imshow(window_name, image)
                     key = cv2.waitKey(ESC_KEY) & 0xFF
                     if key == 27:
                         break
             else:
                 print("Passed")
-                client.handle_key(common.Keys.KEY_SPACE)
+                global HALT_QUEUE
+                HALT_QUEUE += 1
+                print(HALT_QUEUE)
+
+                if time_stamp is None:
+                    time_stamp = datetime.now()
+                    client.handle_key(common.Keys.KEY_SPACE)
+
+                if HALT_QUEUE >= SIZE_OF_HALT_Q:
+                    HALT_QUEUE = 0
+                    print("trying left")
+                    if random.randint(0, 1) == 0:
+                        client.handle_key(common.Keys.KEY_LEFT)
+                    else:
+                        client.handle_key(common.Keys.KEY_RIGHT)
+                    print("Time: ", abs(datetime.now().second - time_stamp.second))
+                    if abs(datetime.now().second - time_stamp.second) >= 2:
+                        time_stamp = None
+                        client.handle_key(common.Keys.KEY_SPACE)
+                    
                 cv2.imshow(window_name, frame)
                 key = cv2.waitKey(ESC_KEY) & 0xFF
                 if key == 27:
