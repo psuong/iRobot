@@ -70,13 +70,13 @@ def main(blur, color_filter):
                 r_p1 = (int(points[1][0]), int(points[1][1]))
                 r_p2 = (int(points[1][2]), int(points[1][3]))
 
+                # Create the lanes
+                left_lane, right_lane = LaneDetector.get_left_right_lanes((l_p1, l_p2), (r_p1, r_p2))
+
                 # TODO: Store the coordinates of the lane
                 # Draw the lanes
-                cv2.line(image, l_p1, l_p2, (0, 255, 0), 2)
-                cv2.line(image, r_p1, r_p2, (0, 255, 0), 2)
-                # Create the lanes
-                left_lane = (l_p1, l_p2)
-                right_lane = (r_p1, r_p2)
+                cv2.line(image, left_lane[0], left_lane[1], (0, 255, 0), 2)
+                cv2.line(image, right_lane[0], right_lane[1], (0, 255, 0), 2)
 
                 vp = line_intersection(left_lane, right_lane)
                 # If the VP exists
@@ -157,11 +157,11 @@ def steer(d_m, d_s, threshold):
     :return: None
     """
     if d_m > threshold:
-        print("Right")
+        print("Left")
         if rover_status:
             rover.forward_right()
     elif d_s > threshold:
-        print("Left")
+        print("Right")
         if rover_status:
             rover.forward_left()
     else:
@@ -171,11 +171,6 @@ def steer(d_m, d_s, threshold):
 
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser()
-    ap.add_argument("-p", "--path", type=str, help="Path of the serialized data for the bounds"
-                                                   "you can ignore the serialized_data directory")
-    args = vars(ap.parse_args())
-
     color_filter_file = os.path.join(DATA_DIR, "custom-road.p")
     color_filter_data = load_serialize_data(color_filter_file)
 
