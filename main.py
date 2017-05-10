@@ -137,7 +137,7 @@ def warning_detection(width, height, image, vp, left_lane, right_lane):
         # Draw the intersection
         cv2.circle(image, tuple(m), radius=4, color=(66, 199, 89), thickness=5)
         # Draw the right distance of the screen
-        # cv2.line(image, tuple(s), bottom_right, color=(66, 199, 244), thickness=4)
+        cv2.line(image, tuple(s), bottom_right, color=(66, 199, 244), thickness=4)
         # Draw the intersection
         cv2.circle(image, tuple(s), radius=4, color=(66, 199, 89), thickness=5)
 
@@ -159,11 +159,11 @@ def steer(d_m, d_s, threshold):
     if d_m > threshold:
         print("Left")
         if rover_status:
-            rover.forward_right()
+            rover.forward_left()
     elif d_s > threshold:
         print("Right")
         if rover_status:
-            rover.forward_left()
+            rover.forward_right()
     else:
         print("Straight")
         if rover_status:
