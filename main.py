@@ -24,6 +24,8 @@ except:
 
 LIVE_STREAM = "http://192.168.43.99:8080/?action=stream"
 image_processor = ImageProcessor(threshold_1=1000, threshold_2=2000)
+SIZE_OF_Q = 10
+super_queue = {common.Keys.KEY_UP: 0, common.Keys.KEY_LEFT: 0, common.Keys.KEY_RIGHT: 0, common.Keys.KEY_SPACE: 0}
 
 
 def main(blur, color_filter):
@@ -38,7 +40,8 @@ def main(blur, color_filter):
     lane_tracker = LaneTracker(2, 0.1, 500)
 
     ticks = 0
-
+    queue_iter = 0
+    
     while camera_stream.stream.isOpened():
         pre_ticks = ticks
         ticks = cv2.getTickCount()
@@ -51,6 +54,7 @@ def main(blur, color_filter):
             width = frame.shape[1]
             image = frame
             # image = ImageProcessor.filter_colors(frame, color_filter[LOWER_BOUND], color_filter[UPPER_BOUND])
+            # image = ImageProcessor.filter_colors(frame, [0,109,0], [116,255,187])
             predicted_points = lane_tracker.predict(dt)
             points = lane_detect.detect(image)
 
@@ -88,7 +92,7 @@ def main(blur, color_filter):
 
                     dm_ds = warning_detection(height, width, image, vp, left_lane, right_lane)
 
-                    steer(dm_ds[0], dm_ds[1], width / 4)
+                    steer(dm_ds[0], dm_ds[1], width / 4, queue_iter)
                    
                     cv2.imshow(window_name, image)
                     key = cv2.waitKey(ESC_KEY) & 0xFF
@@ -101,7 +105,7 @@ def main(blur, color_filter):
                 key = cv2.waitKey(ESC_KEY) & 0xFF
                 if key == 27:
                     break
-                
+
                 continue
 
 
@@ -155,7 +159,7 @@ def warning_detection(width, height, image, vp, left_lane, right_lane):
         return d_m, d_s
 
 
-def steer(d_m, d_s, threshold):
+def steer(d_m, d_s, threshold, queue_iter):
     """
     Checks the distance between the left and the right bounds. If d_m is larger than the threshold,
     force the rover to turn RIGHT. If d_s is larger than the threshold, force the rover to turn LEFT.
@@ -166,21 +170,29 @@ def steer(d_m, d_s, threshold):
     :return: None
     """
     if d_m > threshold:
-        print("Left")
         if rover_status:
-            client.handle_key(common.Keys.KEY_LEFT)
-            rover.forward_left()
+            move = common.Keys.KEY_LEFT
+        else:
+            print("Left")
     elif d_s > threshold:
-        print("Right")
         if rover_status:
-            client.handle_key(common.Keys.KEY_RIGHT)
-            rover.forward_right()
+            move = common.Keys.KEY_RIGHT
+        else:
+            print("Right")
     else:
-        print("Straight")        
         if rover_status:
-            client.handle_key(common.Keys.KEY_UP)
-            rover.forward()
+            move = common.Keys.KEY_UP
+        else:
+            print("Straight")
 
+    super_queue[move] += 1
+    queue_iter += 1
+    if queue_iter % SIZE_OF_Q == 0:
+        client.handle_key(max(super_queue.items(), key=lambda m: m[1])[0])
+        for k in super_queue.keys():
+            super_queue[k] = 0
+    else:
+        print("not sending")
 
 if __name__ == "__main__":
     color_filter_file = os.path.join(DATA_DIR, "custom-road.p")
