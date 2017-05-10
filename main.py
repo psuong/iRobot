@@ -92,6 +92,7 @@ def main(blur, color_filter):
 
                     dm_ds = warning_detection(height, width, image, vp, left_lane, right_lane)
 
+                    queue_iter += 1
                     steer(dm_ds[0], dm_ds[1], width / 4, queue_iter)
                    
                     cv2.imshow(window_name, image)
@@ -186,9 +187,10 @@ def steer(d_m, d_s, threshold, queue_iter):
             print("Straight")
 
     super_queue[move] += 1
-    queue_iter += 1
     if queue_iter % SIZE_OF_Q == 0:
-        client.handle_key(max(super_queue.items(), key=lambda m: m[1])[0])
+        to_send = max(super_queue.items(), key=lambda m: m[1])
+        client.handle_key(to_send[0])
+        print("sending", to_send)
         for k in super_queue.keys():
             super_queue[k] = 0
     else:
