@@ -11,6 +11,8 @@ from utility import line_intersection, distance, get_average_line
 from lane_tracking.track import LaneTracker
 import argparse
 
+from remote_control import client, common
+
 
 try:
     from rover import RoverClient
@@ -20,12 +22,12 @@ try:
 except:
     rover_status = False
 
-LIVE_STREAM = "http://192.168.1.118:8080/video"
+LIVE_STREAM = "http://192.168.43.99:8080/?action=stream"
 image_processor = ImageProcessor(threshold_1=1000, threshold_2=2000)
 
 
 def main(blur, color_filter):
-    if os.environ.get('VIDEO_PATH') is not None:
+    if os.environ.get('VIDEO_PATH') is None:
         camera_stream = WebcamVideoStream(src=LIVE_STREAM).start()
     else:
         camera_stream = WebcamVideoStream(src=1).start()
@@ -87,14 +89,21 @@ def main(blur, color_filter):
                     dm_ds = warning_detection(height, width, image, vp, left_lane, right_lane)
 
                     steer(dm_ds[0], dm_ds[1], width / 4)
+                   
+                    cv2.imshow(window_name, image)
+                    key = cv2.waitKey(ESC_KEY) & 0xFF
+                    if key == 27:
+                        break
             else:
                 print("Passed")
+                client.handle_key(common.Keys.KEY_SPACE)
+                cv2.imshow(window_name, frame)
+                key = cv2.waitKey(ESC_KEY) & 0xFF
+                if key == 27:
+                    break
+                
                 continue
 
-            cv2.imshow(window_name, image)
-            key = cv2.waitKey(ESC_KEY) & 0xFF
-            if key == 27:
-                break
 
 
 def warning_detection(width, height, image, vp, left_lane, right_lane):
@@ -159,14 +168,17 @@ def steer(d_m, d_s, threshold):
     if d_m > threshold:
         print("Left")
         if rover_status:
+            client.handle_key(common.Keys.KEY_LEFT)
             rover.forward_left()
     elif d_s > threshold:
         print("Right")
         if rover_status:
+            client.handle_key(common.Keys.KEY_RIGHT)
             rover.forward_right()
     else:
-        print("Straight")
+        print("Straight")        
         if rover_status:
+            client.handle_key(common.Keys.KEY_UP)
             rover.forward()
 
 
