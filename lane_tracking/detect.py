@@ -107,3 +107,33 @@ class LaneDetector:
 
             return [left_bound, right_bound]
 
+    @staticmethod
+    def get_left_right_lanes(line1, line2):
+        """
+        Returns a pair of left and right lanes. The left lane's X coordinate should typically be
+        less than the right lane's x coordinate. Check for the Y coordinate whose value is lower
+        :param line1: A pair of coordinates
+        :param line2: A pair of coordinates
+        :return: A pair of tuple
+        """
+        line1_p1 = line1[0]
+        line1_p2 = line1[1]
+
+        line2_p1 = line2[0]
+        line2_p2 = line2[1]
+        # Get the lower bound points
+        if line1_p1[1] > line1_p2[1]:
+            lower_bound_point1_1 = line1_p1
+        else:
+            lower_bound_point1_1 = line1_p2
+
+        if line2_p1[1] > line2_p2[1]:
+            lower_bound_point1_2 = line2_p1
+        else:
+            lower_bound_point1_2 = line2_p2
+        # if the reference point of one line is less than the reference point of another line then
+        # the former is the left lane and the latter is the right lane
+        if lower_bound_point1_1[0] < lower_bound_point1_2[0]:
+            return line1, line2
+        else:
+            return line2, line1

@@ -7,7 +7,7 @@ from imutils.video import WebcamVideoStream
 from remote_control import client
 from remote_control.client import Keys
 from calibration_data import HSVData, UPPER_BOUND, LOWER_BOUND, DATA_DIR, load_serialize_data
-from utility import line_intersection, distance
+from utility import line_intersection, distance, get_average_line
 from lane_tracking.track import LaneTracker
 import argparse
 
@@ -47,13 +47,12 @@ def main(blur, color_filter):
         if frame is not None:
             height = frame.shape[0]
             width = frame.shape[1]
-
-            # image = cv2.blur(frame, (blur.kernel_size, blur.point))
-            image = ImageProcessor.filter_colors(frame, color_filter[LOWER_BOUND], color_filter[UPPER_BOUND])
+            image = frame
+            # image = ImageProcessor.filter_colors(frame, color_filter[LOWER_BOUND], color_filter[UPPER_BOUND])
             predicted_points = lane_tracker.predict(dt)
             points = lane_detect.detect(image)
 
-            if predicted_points is not None:
+            if predicted_points is not None and points is not None and points[0] is not None and points[1] is not None:
                 cv2.line(image,
                          (predicted_points[0][0], predicted_points[0][1]),
                          (predicted_points[0][2], predicted_points[0][3]),
@@ -138,7 +137,7 @@ def warning_detection(width, height, image, vp, left_lane, right_lane):
         # Draw the intersection
         cv2.circle(image, tuple(m), radius=4, color=(66, 199, 89), thickness=5)
         # Draw the right distance of the screen
-        cv2.line(image, tuple(s), bottom_right, color=(66, 199, 244), thickness=4)
+        # cv2.line(image, tuple(s), bottom_right, color=(66, 199, 244), thickness=4)
         # Draw the intersection
         cv2.circle(image, tuple(s), radius=4, color=(66, 199, 89), thickness=5)
 
