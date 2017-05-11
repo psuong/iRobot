@@ -6,11 +6,11 @@ from image_processor import ImageProcessor, ESC_KEY
 from lane_tracking.detect import LaneDetector
 from imutils.video import WebcamVideoStream
 from remote_control import client
+from remote_control.common import MotorManager
 from remote_control.client import Keys
 from calibration_data import HSVData, UPPER_BOUND, LOWER_BOUND, DATA_DIR, load_serialize_data
 from utility import line_intersection, distance, get_average_line
 from lane_tracking.track import LaneTracker
-import argparse
 from datetime import datetime
 
 from remote_control import client, common
@@ -26,14 +26,10 @@ except:
 
 LIVE_STREAM = "http://192.168.43.164:8080/?action=stream"
 image_processor = ImageProcessor(threshold_1=1000, threshold_2=2000)
-SIZE_OF_Q = 10
-super_queue = {common.Keys.KEY_UP: 0, common.Keys.KEY_LEFT: 0, common.Keys.KEY_RIGHT: 0, common.Keys.KEY_SPACE: 0}
 SIZE_OF_HALT_Q = 10
-HALT_QUEUE = 0
-_time_lock = False
 
 
-def main(blur, color_filter):
+def main():
     if os.environ.get('VIDEO_PATH') is None:
         camera_stream = WebcamVideoStream(src=LIVE_STREAM).start()
     else:
@@ -45,7 +41,11 @@ def main(blur, color_filter):
     lane_tracker = LaneTracker(2, 0.1, 500)
 
     ticks = 0
-    queue_iter = 0
+
+    # Create the motor manager
+    motor_manager = MotorManager()
+
+    # Create the time_stamp
     time_stamp = None
 
     while camera_stream.stream.isOpened():
@@ -98,8 +98,8 @@ def main(blur, color_filter):
 
                     dm_ds = warning_detection(height, width, image, vp, left_lane, right_lane)
 
-                    queue_iter += 1
-                    steer(dm_ds[0], dm_ds[1], width / 4, queue_iter)
+                    movement = perceive_movement(dm_ds[0], dm_ds[1], width / 4)
+                    motor_manager.update_movement(movement)
 
                     cv2.imshow(window_name, image)
                     key = cv2.waitKey(ESC_KEY) & 0xFF
@@ -133,7 +133,6 @@ def main(blur, color_filter):
                     break
 
                 continue
-
 
 
 def warning_detection(width, height, image, vp, left_lane, right_lane):
@@ -185,48 +184,28 @@ def warning_detection(width, height, image, vp, left_lane, right_lane):
         return d_m, d_s
 
 
-def steer(d_m, d_s, threshold, queue_iter):
+def perceive_movement(d_m, d_s, threshold):
     """
     Checks the distance between the left and the right bounds. If d_m is larger than the threshold,
     force the rover to turn RIGHT. If d_s is larger than the threshold, force the rover to turn LEFT.
     The threshold is typically the image's width / 4.
+    
+    Steering should just return a state.
+    
     :param d_m: distance from the left bound
     :param d_s: distance from the right bound
     :param threshold: Value determining if the car should steer or drive forward
     :return: None
     """
     if d_m > threshold:
-        if rover_status:
-            move = common.Keys.KEY_LEFT
-        else:
-            print("Left")
+        print("Left")
+        return common.Keys.KEY_LEFT
     elif d_s > threshold:
-        if rover_status:
-            move = common.Keys.KEY_RIGHT
-        else:
-            print("Right")
+        print("Right")
+        return common.Keys.KEY_RIGHT
     else:
-        if rover_status:
-            move = common.Keys.KEY_UP
-        else:
-            print("Straight")
-
-    super_queue[move] += 1
-    if queue_iter % SIZE_OF_Q == 0:
-        to_send = max(super_queue.items(), key=lambda m: m[1])
-        client.handle_key(to_send[0])
-        print("sending", to_send)
-        for k in super_queue.keys():
-            super_queue[k] = 0
-    else:
-        print("not sending")
+        print("Straight")
+        return common.Keys.KEY_UP
 
 if __name__ == "__main__":
-    color_filter_file = os.path.join(DATA_DIR, "custom-road.p")
-    color_filter_data = load_serialize_data(color_filter_file)
-
-    # The blur can be useless
-    blur_filter_file = os.path.join(DATA_DIR, "macaulay_table_blur.p")
-    blur_filter = load_serialize_data(blur_filter_file)
-
-    main(blur_filter, color_filter_data)
+    main()
