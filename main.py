@@ -42,13 +42,13 @@ def main():
     ticks = 0
 
     # Create the motor manager
-    motor_manager = MotorManager(10)
+    motor_manager = MotorManager(1)
 
     # Initialize the current iteration to 0
     current_iteration = 0
 
-    # Create the time_stamp
-    time_stamp = None
+    # Create the start time
+    start_time = None
 
     while camera_stream.stream.isOpened():
         pre_ticks = ticks
@@ -60,13 +60,14 @@ def main():
         if frame is not None:
             height = frame.shape[0]
             width = frame.shape[1]
-            image = frame
+            # image = frame
             # image = ImageProcessor.filter_colors(frame, color_filter[LOWER_BOUND], color_filter[UPPER_BOUND])
             # image = ImageProcessor.filter_colors(frame, [0,109,0], [116,255,187])
+            image = ImageProcessor.bilateral_blur(frame)
             predicted_points = lane_tracker.predict(dt)
             points = lane_detect.detect(image)
 
-            if predicted_points is not None and points is not None and points[0] is not None and points[1] is not None:
+            if predicted_points is not None:
                 cv2.line(image,
                          (predicted_points[0][0], predicted_points[0][1]),
                          (predicted_points[0][2], predicted_points[0][3]),
@@ -102,20 +103,27 @@ def main():
 
                     # Get the movement
                     movement = perceive_movement(dm_ds[0], dm_ds[1], width / 4)
-
+                    current_iteration += 1
                     # Sample a certain number of frames and grab the majority direction
-                    if current_iteration >= motor_manager.max_count:
+                    if current_iteration <= motor_manager.max_count:
                         # Update the movement
                         motor_manager.update_movement(movement)
                     else:
-                        # Reset the current iteration and update the movement
-                        current_iteration = 0
-                        motor_manager.reset_movement()
-                        motor_manager.update_movement(movement)
-                        movement_key = motor_manager.get_max_movement()
-                        print("Sending movement...")
-                        # Send the movement to the rover
-                        client.handle_key(movement_key)
+                        # print("Start Time: ", start_time)
+                        if start_time is None:
+                            start_time = datetime.now()
+                            # TODO: Time stamp how often we receive an instruction
+                            # Reset the current iteration and update the movement
+                            current_iteration = 0
+                            motor_manager.update_movement(movement)
+                            movement_key = motor_manager.get_max_movement()
+                            motor_manager.reset_movement()
+                            client.handle_key(Keys.KEY_SPACE)
+                            print("-----------------Sending movement...-------------------")
+                            # Send the movement to the rover
+                            client.handle_key(movement_key)
+                        if abs(datetime.now().second - start_time.second) > 2:
+                            start_time = None
 
                     cv2.imshow(window_name, image)
                     key = cv2.waitKey(ESC_KEY) & 0xFF
@@ -126,26 +134,37 @@ def main():
                 # We should randomly turn back and forth as if we're looking for our lane again, assuming that
                 # our rover simply tilted
                 print("Passed")
-                global HALT_QUEUE
-                HALT_QUEUE += 1
-                print(HALT_QUEUE)
+                predicted_points = lane_tracker.predict(dt)
+                if predicted_points is not None:
+                    line_1 = ((predicted_points[0][0], predicted_points[0][1]),
+                              (predicted_points[0][2], predicted_points[1][2]))
+                    line_2 = ((predicted_points[1][0], predicted_points[1][1]),
+                              (predicted_points[1][2], predicted_points[1][3]))
 
-                if time_stamp is None:
-                    time_stamp = datetime.now()
-                    client.handle_key(common.Keys.KEY_SPACE)
+                    left_lane, right_lane = LaneDetector.get_left_right_lanes(line_1, line_2)
+                    cv2.line(image, left_lane[0], left_lane[1], (255, 120, 80), 3)
+                    cv2.line(image, right_lane[0], right_lane[1], (255, 120, 80), 3)
+                    vp = line_intersection(left_lane, right_lane)
+                    if vp is not None:
+                        cv2.circle(image, tuple(vp), 10, (0, 244, 255), thickness=4)
+                        dm_ds = warning_detection(height, width, image, vp, left_lane, right_lane)
 
-                if HALT_QUEUE >= SIZE_OF_HALT_Q:
-                    HALT_QUEUE = 0
-                    print("trying left")
-                    if random.randint(0, 1) == 0:
-                        client.handle_key(common.Keys.KEY_LEFT)
-                    else:
-                        client.handle_key(common.Keys.KEY_RIGHT)
-                    print("Time: ", abs(datetime.now().second - time_stamp.second))
-                    if abs(datetime.now().second - time_stamp.second) >= 2:
-                        time_stamp = None
-                        client.handle_key(common.Keys.KEY_SPACE)
-                    
+                        movement = perceive_movement(dm_ds[0], dm_ds[1], width / 4)
+
+                        if start_time is None:
+                            start_time = datetime.now()
+                            # client.handle_key(Keys.KEY_SPACE)
+                            client.handle_key(movement)
+
+                        elapsed_time = abs(datetime.now().second - start_time.second)
+                        print("Elapsed Time in Else: ", elapsed_time)
+                        if elapsed_time > 2:
+                            start_time = None
+                else:
+                    # TODO: Randomly turn left and right
+                    client.handle_key(Keys.KEY_SPACE)
+
+                client.handle_key(Keys.KEY_SPACE)
                 cv2.imshow(window_name, frame)
                 key = cv2.waitKey(ESC_KEY) & 0xFF
                 if key == 27:
@@ -216,13 +235,13 @@ def perceive_movement(d_m, d_s, threshold):
     :return: None
     """
     if d_m > threshold:
-        print("Left")
+        # print("Left")
         return common.Keys.KEY_LEFT
     elif d_s > threshold:
-        print("Right")
+        # print("Right")
         return common.Keys.KEY_RIGHT
     else:
-        print("Straight")
+        # print("Straight")
         return common.Keys.KEY_UP
 
 if __name__ == "__main__":
