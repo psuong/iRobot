@@ -26,7 +26,6 @@ except:
 
 LIVE_STREAM = "http://192.168.43.164:8080/?action=stream"
 image_processor = ImageProcessor(threshold_1=1000, threshold_2=2000)
-SIZE_OF_HALT_Q = 10
 
 
 def main():
@@ -43,7 +42,10 @@ def main():
     ticks = 0
 
     # Create the motor manager
-    motor_manager = MotorManager()
+    motor_manager = MotorManager(10)
+
+    # Initialize the current iteration to 0
+    current_iteration = 0
 
     # Create the time_stamp
     time_stamp = None
@@ -98,14 +100,31 @@ def main():
 
                     dm_ds = warning_detection(height, width, image, vp, left_lane, right_lane)
 
+                    # Get the movement
                     movement = perceive_movement(dm_ds[0], dm_ds[1], width / 4)
-                    motor_manager.update_movement(movement)
+
+                    # Sample a certain number of frames and grab the majority direction
+                    if current_iteration >= motor_manager.max_count:
+                        # Update the movement
+                        motor_manager.update_movement(movement)
+                    else:
+                        # Reset the current iteration and update the movement
+                        current_iteration = 0
+                        motor_manager.reset_movement()
+                        motor_manager.update_movement(movement)
+                        movement_key = motor_manager.get_max_movement()
+                        print("Sending movement...")
+                        # Send the movement to the rover
+                        client.handle_key(movement_key)
 
                     cv2.imshow(window_name, image)
                     key = cv2.waitKey(ESC_KEY) & 0xFF
                     if key == 27:
                         break
             else:
+                # When we do not detect a line - this means we have probably gone off the lane or tilted
+                # We should randomly turn back and forth as if we're looking for our lane again, assuming that
+                # our rover simply tilted
                 print("Passed")
                 global HALT_QUEUE
                 HALT_QUEUE += 1
@@ -131,7 +150,6 @@ def main():
                 key = cv2.waitKey(ESC_KEY) & 0xFF
                 if key == 27:
                     break
-
                 continue
 
 
