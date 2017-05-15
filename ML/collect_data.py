@@ -1,10 +1,43 @@
 import numpy as np
-import cv2
 import pygame
+import os
+import cv2
+import math
+import random
+from image_processor import ImageProcessor, ESC_KEY
+from lane_tracking.detect import LaneDetector
+from imutils.video import WebcamVideoStream
+from remote_control import client
+from remote_control.common import MotorManager
+from remote_control.client import Keys
+from calibration_data import HSVData, UPPER_BOUND, LOWER_BOUND, DATA_DIR, load_serialize_data
+from utility import line_intersection, distance, get_average_line
+from lane_tracking.track import LaneTracker
+from datetime import datetime
+
+from remote_control import client, common
+
+
+try:
+    from rover import RoverClient
+
+    rover = RoverClient()
+    rover_status = True
+except:
+    rover_status = False
+
+LIVE_STREAM = "http://192.168.43.164:8080/?action=stream"
+image_processor = ImageProcessor(threshold_1=1000, threshold_2=2000)
 
 from pygame.locals import *
 
 class DataCollector(object):
+    if os.environ.get('VIDEO_PATH') is None:
+        camera_stream = WebcamVideoStream(src=LIVE_STREAM).start()
+    else:
+        camera_stream = WebcamVideoStream(src=1).start()
+
+    motor_manager = MotorManager(0.5)
 
     def __init__(self):
 
@@ -24,7 +57,7 @@ class DataCollector(object):
 
         #307200 pixels in each image
         #probably need to downscale, training is slow
-        framearray = np.zeros((1, 307200)).astype(np.float32)
+        framearray = np.zeros((1, 38400)).astype(np.float32)
         labelarray = np.zeros((1,4)).astype(np.float32)
 
         #for ML purposes, store images as numpy arrays
@@ -32,10 +65,10 @@ class DataCollector(object):
         imglist = []
         labels = []
         pygame.init()
-        screen = pygame.display.set_mode((640, 480))
+        screen = pygame.display.set_mode((320, 240))
 
-        while video.isOpened():
-            ret, frame = video.read()
+    while camera_stream.stream.isOpened():
+            frame = camera_stream.read()
             if not ret:
                 break
 
@@ -44,14 +77,14 @@ class DataCollector(object):
 
             #draw to screen using pygame
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            gray = gray.reshape(1, 307200).astype(np.float32)
+            gray = gray.reshape(1, 38400).astype(np.float32)
             screen.fill([0,0,0])
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame = np.rot90(frame)
             frame = pygame.surfarray.make_surface(frame)
             screen.blit(frame, (0,0))
             pygame.display.update()
-            pygame.time.wait(33) #30fps
+            pygame.time.wait(1) #30fps
 
 
             labelrow = [0,0,0,0]
