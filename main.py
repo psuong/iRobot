@@ -60,10 +60,8 @@ def main():
         if frame is not None:
             height = frame.shape[0]
             width = frame.shape[1]
-            # image = frame
-            # image = ImageProcessor.filter_colors(frame, color_filter[LOWER_BOUND], color_filter[UPPER_BOUND])
-            # image = ImageProcessor.filter_colors(frame, [0,109,0], [116,255,187])
-            image = ImageProcessor.bilateral_blur(frame)
+
+            image = frame
             predicted_points = lane_tracker.predict(dt)
             points = lane_detect.detect(image)
 
