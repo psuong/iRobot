@@ -4,13 +4,16 @@ import sys
 import os
 import tesserocr
 from PIL import Image
+from imutils.video import WebcamVideoStream
+import pillowfight
+
 """Do not use this, it is way too slow"""
 #PLAN: Use some text region detector to find regions of interest, feed to tesseract
 #to perform OCR
 
 
 def captch_ex(img):
-    
+
 
     img_final = img
     img2gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -31,28 +34,29 @@ def captch_ex(img):
 
     for contour in contours:
         # get rectangle bounding contour
-        [x, y, w, h] = cv2.boundingRect(contour)
+        #[x, y, w, h] = cv2.boundingRect(contour)
 
         # Don't plot small false positives that aren't text
-        if (w < 80 and h < 80) or (w > 120 and h > 120):
-            continue
+        #if (w < 75 or h < 75) or (w > 250 or h > 250) or (w < 1.5*h):
+        #    continue
 
         # draw rectangle around contour on original image
-        cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 255), 2)
+        #cv2.rectangle(img2gray, (x, y), (x + w, y + h), (255, 0, 255), 2)
 
         #you can crop image and send to OCR  , false detected will return no text :)
-        cropped = Image.fromarray(img_final[y :y +  h , x : x + w])
+        #cropped = Image.fromarray(img2gray[y :y +  h , x : x + w])
 
         #s = file_name + '/crop_' + str(index) + '.jpg'
         #cv2.imwrite(s , cropped)
         #index = index + 1
+        #print(tesserocr.image_to_text(cropped))
         print("Test")
 
 
 
     # write original image with added contours to disk
-    cv2.imshow('captcha_result', img)
-    cv2.waitKey(10)
+    cv2.imshow('captcha_result', img2gray)
+    #cv2.waitKey(1)
 
 
 def frame_process(img):
@@ -94,18 +98,44 @@ def frame_process(img):
 
     #Visualization
     cv2.imshow("Text detection result", vis)
-    
 
 
-cap = cv2.VideoCapture("http://192.168.43.1:8080/video")
+def blobDetect(img):
+    # Set up the detector with default parameters.
+    detector = cv2.SimpleBlobDetector_create()
+
+# Detect blobs.
+    keypoints = detector.detect(img)
+
+# Draw detected blobs as red circles.
+# cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures the size of the circle corresponds to the size of blob
+    im_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+# Show keypoints
+    cv2.imshow("Keypoints", im_with_keypoints)
+    cv2.waitKey(1)
+
+LIVE_STREAM = "http://192.168.77.81:8080/video"
+
+camera_stream = WebcamVideoStream(src=LIVE_STREAM).start()
 
 
-while(cap.isOpened()):
+framecount = 0
+while camera_stream.stream.isOpened():
+    framecount += 1
+    frame = cv2.cvtColor(camera_stream.read(), cv2.COLOR_BGR2GRAY)
+    img = Image.fromarray(frame)
+    img_out = pillowfight.swt(img, output_type=pillowfight.SWT_OUTPUT_ORIGINAL_BOXES)
+    print(tesserocr.image_to_text(img))
 
-    ret, frame = cap.read()
-    captch_ex(frame[:, 120:])
+    cv2.imshow("", frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
 cap.release()
 cv2.destroyAllWindows()
+
+
+#image = cv2.imread("img1.jpg")
+#image = cv2.resize(image,(320,240))
+#captch_ex(image)
