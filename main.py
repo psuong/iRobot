@@ -1,17 +1,12 @@
-import os
 import cv2
-import math
-import random
 from image_processor import ImageProcessor, ESC_KEY
 from lane_tracking.detect import LaneDetector
-from imutils.video import WebcamVideoStream
-from remote_control import client
 from remote_control.common import MotorManager
 from remote_control.client import Keys
-from calibration_data import HSVData, UPPER_BOUND, LOWER_BOUND, DATA_DIR, load_serialize_data
 from utility import line_intersection, distance, get_average_line
 from lane_tracking.track import LaneTracker
 from datetime import datetime
+from camera import VideoReader
 
 from remote_control import client, common
 
@@ -29,55 +24,29 @@ image_processor = ImageProcessor(threshold_1=1000, threshold_2=2000)
 
 
 def main():
-    if os.environ.get('VIDEO_PATH') is None:
-        camera_stream = WebcamVideoStream(src=LIVE_STREAM).start()
-    else:
-        camera_stream = WebcamVideoStream(src=1).start()
-
+    camera_stream = VideoReader(video_path="driving.mp4")
     window_name = "Main"
-
     lane_detect = LaneDetector(50)
     lane_tracker = LaneTracker(2, 0.1, 500)
-
     ticks = 0
+    camera_stream.open_video() # Open the video
 
-    # Create the motor manager
-    motor_manager = MotorManager(1)
-
-    # Initialize the current iteration to 0
-    current_iteration = 0
-
-    # Create the start time
-    start_time = None
-
-    while camera_stream.stream.isOpened():
+    while camera_stream.video.isOpened():
         pre_ticks = ticks
         ticks = cv2.getTickCount()
         dt = (ticks - pre_ticks) / cv2.getTickFrequency()
 
-        frame = camera_stream.read()
+        ret, frame = camera_stream.video.read()
 
         if frame is not None:
             height = frame.shape[0]
             width = frame.shape[1]
 
-            image = frame
-            predicted_points = lane_tracker.predict(dt)
+            image = frame.copy()
+            # image = ImageProcessor.bilateral_blur(image)
             points = lane_detect.detect(image)
 
-            if predicted_points is not None:
-                cv2.line(image,
-                         (predicted_points[0][0], predicted_points[0][1]),
-                         (predicted_points[0][2], predicted_points[0][3]),
-                         (255, 0, 0), 4)
-                cv2.line(image,
-                         (predicted_points[1][0], predicted_points[1][1]),
-                         (predicted_points[1][2], predicted_points[1][3]),
-                         (255, 0, 0), 4)
-
             if points is not None and points[0] is not None and points[1] is not None:
-                lane_tracker.update(points)
-
                 l_p1 = (int(points[0][0]), int(points[0][1]))
                 l_p2 = (int(points[0][2]), int(points[0][3]))
                 r_p1 = (int(points[1][0]), int(points[1][1]))
@@ -86,7 +55,6 @@ def main():
                 # Create the lanes
                 left_lane, right_lane = LaneDetector.get_left_right_lanes((l_p1, l_p2), (r_p1, r_p2))
 
-                # TODO: Store the coordinates of the lane
                 # Draw the lanes
                 cv2.line(image, left_lane[0], left_lane[1], (0, 255, 0), 2)
                 cv2.line(image, right_lane[0], right_lane[1], (0, 255, 0), 2)
@@ -100,28 +68,7 @@ def main():
                     dm_ds = warning_detection(height, width, image, vp, left_lane, right_lane)
 
                     # Get the movement
-                    movement = perceive_movement(dm_ds[0], dm_ds[1], width / 4)
-                    current_iteration += 1
-                    # Sample a certain number of frames and grab the majority direction
-                    if current_iteration <= motor_manager.max_count:
-                        # Update the movement
-                        motor_manager.update_movement(movement)
-                    else:
-                        # print("Start Time: ", start_time)
-                        if start_time is None:
-                            start_time = datetime.now()
-                            # TODO: Time stamp how often we receive an instruction
-                            # Reset the current iteration and update the movement
-                            current_iteration = 0
-                            motor_manager.update_movement(movement)
-                            movement_key = motor_manager.get_max_movement()
-                            motor_manager.reset_movement()
-                            client.handle_key(Keys.KEY_SPACE)
-                            print("-----------------Sending movement...-------------------")
-                            # Send the movement to the rover
-                            client.handle_key(movement_key)
-                        if abs(datetime.now().second - start_time.second) > 2:
-                            start_time = None
+                    movement = perceive_movement(dm_ds[0], dm_ds[1], width)
 
                     cv2.imshow(window_name, image)
                     key = cv2.waitKey(ESC_KEY) & 0xFF
@@ -147,17 +94,7 @@ def main():
                         cv2.circle(image, tuple(vp), 10, (0, 244, 255), thickness=4)
                         dm_ds = warning_detection(height, width, image, vp, left_lane, right_lane)
 
-                        movement = perceive_movement(dm_ds[0], dm_ds[1], width / 4)
-
-                        if start_time is None:
-                            start_time = datetime.now()
-                            # client.handle_key(Keys.KEY_SPACE)
-                            client.handle_key(movement)
-
-                        elapsed_time = abs(datetime.now().second - start_time.second)
-                        print("Elapsed Time in Else: ", elapsed_time)
-                        if elapsed_time > 2:
-                            start_time = None
+                        movement = perceive_movement(dm_ds[0], dm_ds[1], width)
                 else:
                     # TODO: Randomly turn left and right
                     client.handle_key(Keys.KEY_SPACE)
@@ -232,14 +169,15 @@ def perceive_movement(d_m, d_s, threshold):
     :param threshold: Value determining if the car should steer or drive forward
     :return: None
     """
+    print("DM: {}, DS: {}, Threshold: {}".format(d_m, d_s, threshold))
     if d_m > threshold:
-        # print("Left")
+        print("Right")
         return common.Keys.KEY_LEFT
     elif d_s > threshold:
-        # print("Right")
+        print("Left")
         return common.Keys.KEY_RIGHT
     else:
-        # print("Straight")
+        print("Straight")
         return common.Keys.KEY_UP
 
 if __name__ == "__main__":

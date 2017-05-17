@@ -16,10 +16,8 @@ cam.close()  # properly close the camera
 from datetime import datetime
 import os
 from abc import ABCMeta, abstractmethod, abstractproperty
-from image_processor import ImageProcessor, ESC_KEY
-
-import numpy as np
 import cv2
+from os.path import join
 
 
 IMG_DIR = 'img/'
@@ -189,7 +187,7 @@ class VideoReader(object):
     Reads a video frame by frame and processes each frame
     """
     def __init__(self, video_path):
-        self.video_path = video_path
+        self.video_path = join(VIDEO_DIR, video_path)
         self.video = None
 
     def open_video(self):
