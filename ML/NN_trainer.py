@@ -25,6 +25,7 @@ model.setTermCriteria(criteria)
 model.setTrainMethod(0)
 model.setBackpropWeightScale(0.001)
 model.setBackpropMomentumScale(0.0)
+model.setActivationFunction(1)
 
 params = dict(term_crit = criteria,
               bp_dw_scale = 0.001,
